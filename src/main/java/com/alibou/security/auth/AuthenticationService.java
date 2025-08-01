@@ -117,4 +117,17 @@ public class AuthenticationService {
       }
     }
   }
+
+  public void resetPassword(String email, String newPassword) {
+    var user = repository.findByEmail(email)
+        .orElseThrow(() -> new IllegalStateException("User not found"));
+    user.setPassword(passwordEncoder.encode(newPassword));
+    repository.save(user);
+  }
+
+  public void deleteUserByEmail(String email) {
+    var user = repository.findByEmail(email)
+        .orElseThrow(() -> new IllegalStateException("User not found"));
+    repository.delete(user);
+  }
 }
