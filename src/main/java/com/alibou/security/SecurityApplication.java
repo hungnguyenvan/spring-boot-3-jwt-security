@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import static com.alibou.security.user.Role.ADMIN;
-import static com.alibou.security.user.Role.MANAGER;
+import static com.alibou.security.user.Role.EDITOR;
 
 @SpringBootApplication
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
@@ -34,14 +34,14 @@ public class SecurityApplication {
 					.build();
 			System.out.println("Admin token: " + service.register(admin).getAccessToken());
 
-			var manager = RegisterRequest.builder()
-					.firstname("Admin")
-					.lastname("Admin")
-					.email("manager@mail.com")
+			var editor = RegisterRequest.builder()
+					.firstname("Editor")
+					.lastname("Editor")
+					.email("editor@mail.com")
 					.password("password")
-					.role(MANAGER)
+					.role(EDITOR)
 					.build();
-			System.out.println("Manager token: " + service.register(manager).getAccessToken());
+			System.out.println("Editor token: " + service.register(editor).getAccessToken());
 
 		};
 	}

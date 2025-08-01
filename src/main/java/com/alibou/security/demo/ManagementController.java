@@ -17,7 +17,7 @@ public class ManagementController {
 
 
     @Operation(
-            description = "Get endpoint for manager",
+            description = "Get endpoint for editor",
             summary = "This is a summary for management get endpoint",
             responses = {
                     @ApiResponse(

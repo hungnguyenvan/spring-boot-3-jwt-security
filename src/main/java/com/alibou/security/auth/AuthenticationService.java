@@ -4,7 +4,6 @@ import com.alibou.security.config.JwtService;
 import com.alibou.security.token.Token;
 import com.alibou.security.token.TokenRepository;
 import com.alibou.security.token.TokenType;
-import com.alibou.security.user.Role;
 import com.alibou.security.user.User;
 import com.alibou.security.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,10 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -32,10 +28,22 @@ public class AuthenticationService {
   private final AuthenticationManager authenticationManager;
 
   public AuthenticationResponse register(RegisterRequest request) {
+    // Validation để chống spam registration
+    validateRegistrationRequest(request);
+
+    // Kiểm tra trùng email
+    if (repository.findByEmail(request.getEmail()).isPresent()) {
+      throw new IllegalStateException("Email đã tồn tại!");
+    }
+    // Kiểm tra trùng username
+    if (repository.findByUsername(request.getUsername()).isPresent()) {
+      throw new IllegalStateException("Username đã tồn tại!");
+    }
     var user = User.builder()
         .firstname(request.getFirstname())
         .lastname(request.getLastname())
         .email(request.getEmail())
+        .username(request.getUsername())
         .password(passwordEncoder.encode(request.getPassword()))
         .role(request.getRole())
         .build();
@@ -106,6 +114,12 @@ public class AuthenticationService {
       var user = this.repository.findByEmail(userEmail)
               .orElseThrow();
       if (jwtService.isTokenValid(refreshToken, user)) {
+        // Revoke refresh token ngay sau khi sử dụng
+        tokenRepository.findByToken(refreshToken).ifPresent(token -> {
+          token.setExpired(true);
+          token.setRevoked(true);
+          tokenRepository.save(token);
+        });
         var accessToken = jwtService.generateToken(user);
         revokeAllUserTokens(user);
         saveUserToken(user, accessToken);
@@ -129,5 +143,24 @@ public class AuthenticationService {
     var user = repository.findByEmail(email)
         .orElseThrow(() -> new IllegalStateException("User not found"));
     repository.delete(user);
+  }
+
+  // Validation để chống spam registration
+  private void validateRegistrationRequest(RegisterRequest request) {
+      if (request.getEmail() == null || !request.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+          throw new IllegalArgumentException("Invalid email format");
+      }
+      if (request.getUsername() == null || request.getUsername().length() < 3 || request.getUsername().length() > 20) {
+          throw new IllegalArgumentException("Username must be between 3-20 characters");
+      }
+      if (request.getPassword() == null || request.getPassword().length() < 6) {
+          throw new IllegalArgumentException("Password must be at least 6 characters");
+      }
+      if (request.getFirstname() == null || request.getFirstname().trim().isEmpty()) {
+          throw new IllegalArgumentException("First name is required");
+      }
+      if (request.getLastname() == null || request.getLastname().trim().isEmpty()) {
+          throw new IllegalArgumentException("Last name is required");
+      }
   }
 }

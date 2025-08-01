@@ -1,6 +1,7 @@
 package com.alibou.security.user;
 
 import com.alibou.security.token.Token;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -31,7 +32,10 @@ public class User implements UserDetails {
   private Integer id;
   private String firstname;
   private String lastname;
+  @Column(unique = true)
   private String email;
+  @Column(unique = true)
+  private String username;
   private String password;
 
   @Enumerated(EnumType.STRING)
@@ -39,6 +43,9 @@ public class User implements UserDetails {
 
   @OneToMany(mappedBy = "user")
   private List<Token> tokens;
+
+  @Builder.Default
+  private boolean locked = false;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -62,7 +69,7 @@ public class User implements UserDetails {
 
   @Override
   public boolean isAccountNonLocked() {
-    return true;
+    return !locked;
   }
 
   @Override

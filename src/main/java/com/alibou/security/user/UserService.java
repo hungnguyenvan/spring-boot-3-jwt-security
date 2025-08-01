@@ -1,6 +1,8 @@
 package com.alibou.security.user;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,24 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 
         // save the new password
+        repository.save(user);
+    }
+
+    public Page<User> getUsers(String search, Pageable pageable) {
+        return repository.findByEmailContainingOrFirstnameContainingOrLastnameContaining(search, search, search, pageable);
+    }
+
+    public void updateUserRole(int userId, String roleName) {
+        var user = repository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+        user.setRole(Role.valueOf(roleName));
+        repository.save(user);
+    }
+
+    public void setUserLock(int userId, boolean lock) {
+        var user = repository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+        user.setLocked(lock);
         repository.save(user);
     }
 }
