@@ -30,11 +30,14 @@ public class Token {
   public String token;
 
   @Enumerated(EnumType.STRING)
+  @Builder.Default
   public TokenType tokenType = TokenType.BEARER;
 
-  public boolean revoked;
+  @Builder.Default
+  public boolean revoked = false;
 
-  public boolean expired;
+  @Builder.Default
+  public boolean expired = false;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id")
