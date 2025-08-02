@@ -17,9 +17,18 @@ echo "Copying application control files..."
 scp app-control.sh $PI_USER@$PI_HOST:$PROJECT_DIR/
 scp spring-boot-jwt.service $PI_USER@$PI_HOST:$PROJECT_DIR/
 
+# Copy database scripts
+echo "Copying database management scripts..."
+scp check-database.sh $PI_USER@$PI_HOST:$PROJECT_DIR/
+scp quick-db-check.sh $PI_USER@$PI_HOST:$PROJECT_DIR/
+scp monitor-database.sh $PI_USER@$PI_HOST:$PROJECT_DIR/
+
 # Set permissions
 echo "Setting permissions..."
 ssh $PI_USER@$PI_HOST "chmod +x $PROJECT_DIR/app-control.sh"
+ssh $PI_USER@$PI_HOST "chmod +x $PROJECT_DIR/check-database.sh"
+ssh $PI_USER@$PI_HOST "chmod +x $PROJECT_DIR/quick-db-check.sh"
+ssh $PI_USER@$PI_HOST "chmod +x $PROJECT_DIR/monitor-database.sh"
 
 echo "Deployment complete!"
 echo ""
@@ -36,6 +45,14 @@ echo "./app-control.sh status     # Check application status"
 echo "./app-control.sh logs       # View last 50 lines of logs"
 echo "./app-control.sh follow-logs # Follow logs in real-time"
 echo "./app-control.sh build      # Build the application"
+echo ""
+echo "# Database management commands:"
+echo "./quick-db-check.sh         # Quick database overview"
+echo "./check-database.sh all     # Complete database analysis"
+echo "./check-database.sh users   # Show user data"
+echo "./check-database.sh books   # Show book data"
+echo "./check-database.sh query   # Interactive SQL mode"
+echo "./monitor-database.sh       # Real-time database monitoring"
 echo ""
 echo "# To install as systemd service:"
 echo "sudo cp spring-boot-jwt.service /etc/systemd/system/"
