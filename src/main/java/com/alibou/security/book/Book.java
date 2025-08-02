@@ -33,6 +33,7 @@ public class Book {
 
     @CreatedDate
     @Column(
+            name = "created_date",
             nullable = true,
             updatable = false
     )
@@ -40,17 +41,24 @@ public class Book {
     private LocalDateTime createDate = LocalDateTime.now();
 
     @LastModifiedDate
-    @Column(insertable = false)
+    @Column(
+            name = "last_modified_date",
+            insertable = false
+    )
     private LocalDateTime lastModified;
 
     @CreatedBy
     @Column(
+            name = "created_by",
             nullable = true,
             updatable = false
     )
     private Integer createdBy;
 
     @LastModifiedBy
-    @Column(insertable = false)
+    @Column(
+            name = "last_modified_by", 
+            insertable = false
+    )
     private Integer lastModifiedBy;
 }
