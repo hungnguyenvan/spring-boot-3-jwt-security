@@ -31,9 +31,14 @@ public class SecurityConfigurationSimple {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()  // Tạm thời cho phép tất cả để test
+                        .requestMatchers("/api/v1/auth/register", "/api/v1/auth/authenticate", 
+                                       "/api/v1/auth/refresh-token", "/actuator/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }

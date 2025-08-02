@@ -2,6 +2,7 @@ package com.alibou.security.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,13 +20,18 @@ public class AuthenticationController {
 
   private final AuthenticationService service;
 
-  @PostMapping("/register")
+  @PostMapping(value = "/register", 
+               consumes = "application/json", 
+               produces = "application/json")
   public ResponseEntity<AuthenticationResponse> register(
       @RequestBody RegisterRequest request
   ) {
     return ResponseEntity.ok(service.register(request));
   }
-  @PostMapping("/authenticate")
+  
+  @PostMapping(value = "/authenticate", 
+               consumes = "application/json", 
+               produces = "application/json")
   public ResponseEntity<AuthenticationResponse> authenticate(
       @RequestBody AuthenticationRequest request
   ) {
@@ -40,13 +46,17 @@ public class AuthenticationController {
     service.refreshToken(request, response);
   }
 
-  @PostMapping("/reset-password")
+  @PostMapping(value = "/reset-password", 
+               consumes = "application/json", 
+               produces = "application/json")
   public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
     service.resetPassword(request.getEmail(), request.getNewPassword());
     return ResponseEntity.ok("Password reset successful");
   }
 
-  @PostMapping("/delete-user")
+  @PostMapping(value = "/delete-user", 
+               consumes = "application/json", 
+               produces = "application/json")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<String> deleteUser(@RequestBody DeleteUserRequest request) {
     service.deleteUserByEmail(request.getEmail());
