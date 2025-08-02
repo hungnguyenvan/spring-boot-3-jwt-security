@@ -1,0 +1,43 @@
+# Configuration for development with PostgreSQL
+# This matches production environment on Raspberry Pi
+
+spring:
+  profiles:
+    active: dev-postgres
+  datasource:
+    url: jdbc:postgresql://localhost:5432/jwt_security
+    username: hungcop
+    password: hungcop290987
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # Recreate schema each time for dev
+    show-sql: true  # Show SQL for debugging
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+# Enable H2 console for fallback (commented out when using PostgreSQL)
+#  h2:
+#    console:
+#      enabled: true
+#      path: /h2-console
+
+application:
+  security:
+    jwt:
+      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      expiration: 86400000 # a day
+      refresh-token:
+        expiration: 604800000 # 7 days
+
+# Logging for development
+logging:
+  level:
+    com.alibou.security: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

@@ -1,0 +1,151 @@
+### =================================
+### AUTHENTICATION API TESTS
+### =================================
+
+### 1. Register Admin User
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "firstname": "Admin",
+  "lastname": "User", 
+  "email": "admin@example.com",
+  "password": "AdminPassword123",
+  "username": "admin123",
+  "role": "ADMIN"
+}
+
+> {% client.global.set("admin-token", response.body.access_token); %}
+
+###
+
+### 2. Register Editor User  
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "firstname": "Editor",
+  "lastname": "User",
+  "email": "editor@example.com", 
+  "password": "EditorPassword123",
+  "username": "editor123",
+  "role": "EDITOR"
+}
+
+> {% client.global.set("editor-token", response.body.access_token); %}
+
+###
+
+### 3. Register Regular User
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "password": "UserPassword123", 
+  "username": "johndoe",
+  "role": "USER"
+}
+
+> {% client.global.set("user-token", response.body.access_token); %}
+
+###
+
+### 4. Test Register with Missing Fields (Should fail)
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "firstname": "Test",
+  "email": "incomplete@example.com"
+}
+
+###
+
+### 5. Test Register with Duplicate Email (Should fail) 
+POST http://localhost:8080/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "firstname": "Duplicate",
+  "lastname": "User",
+  "email": "admin@example.com",
+  "password": "Password123",
+  "username": "duplicate123", 
+  "role": "USER"
+}
+
+###
+
+### 6. Login Admin
+POST http://localhost:8080/api/v1/auth/authenticate
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "AdminPassword123"
+}
+
+> {% client.global.set("admin-login-token", response.body.access_token); %}
+
+###
+
+### 7. Login Editor
+POST http://localhost:8080/api/v1/auth/authenticate
+Content-Type: application/json
+
+{
+  "email": "editor@example.com", 
+  "password": "EditorPassword123"
+}
+
+> {% client.global.set("editor-login-token", response.body.access_token); %}
+
+###
+
+### 8. Test Protected Endpoint with Admin Token
+GET http://localhost:8080/api/v1/demo-controller
+Authorization: Bearer {{admin-token}}
+
+###
+
+### 9. Test Protected Endpoint with Editor Token  
+GET http://localhost:8080/api/v1/demo-controller
+Authorization: Bearer {{editor-token}}
+
+###
+
+### 10. Test Protected Endpoint with User Token
+GET http://localhost:8080/api/v1/demo-controller
+Authorization: Bearer {{user-token}}
+
+###
+
+### 11. Test Protected Endpoint without Token (Should fail)
+GET http://localhost:8080/api/v1/demo-controller
+
+###
+
+### =================================
+### USER MANAGEMENT TESTS (Admin Only)
+### =================================
+
+### 12. Get All Users (Admin only)
+GET http://localhost:8080/api/v1/users
+Authorization: Bearer {{admin-token}}
+
+###
+
+### 13. Get All Users with Pagination
+GET http://localhost:8080/api/v1/users?page=0&size=5
+Authorization: Bearer {{admin-token}}
+
+###
+
+### 14. Search Users by Email
+GET http://localhost:8080/api/v1/users?email=editor
+Authorization: Bearer {{admin-token}}
+
+###

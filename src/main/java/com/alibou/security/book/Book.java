@@ -33,19 +33,19 @@ public class Book {
 
     @CreatedDate
     @Column(
-            nullable = false,
+            nullable = true,
             updatable = false
     )
-    private LocalDateTime createDate;
+    @Builder.Default
+    private LocalDateTime createDate = LocalDateTime.now();
 
     @LastModifiedDate
     @Column(insertable = false)
     private LocalDateTime lastModified;
 
-
     @CreatedBy
     @Column(
-            nullable = false,
+            nullable = true,
             updatable = false
     )
     private Integer createdBy;

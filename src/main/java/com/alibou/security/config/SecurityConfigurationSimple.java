@@ -13,15 +13,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
-import static com.alibou.security.user.Role.ADMIN;
-import static com.alibou.security.user.Role.EDITOR;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
-//@Configuration
-//@EnableWebSecurity
+@Configuration
+@EnableWebSecurity
 @RequiredArgsConstructor
-//@EnableMethodSecurity
-public class SecurityConfiguration {
+@EnableMethodSecurity
+public class SecurityConfigurationSimple {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
@@ -30,25 +28,12 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
+        return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .headers(headers -> headers.frameOptions().sameOrigin()) // For H2 Console
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/v1/auth/**", "/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/v1/management/**").hasAnyRole(ADMIN.name(), EDITOR.name())
-                        .anyRequest().authenticated()
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()  // Tạm thời cho phép tất cả để test
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
-                .logout(logout ->
-                        logout.logoutUrl("/api/v1/auth/logout")
-                                .addLogoutHandler(logoutHandler)
-                                .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
-                )
-        ;
-
-        return http.build();
+                .build();
     }
 }

@@ -1,0 +1,59 @@
+# Docker Compose for Raspberry Pi 5
+# Compatible với ARM64 architecture
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine  # Lightweight cho Raspberry Pi
+    container_name: postgres-jwt-raspi
+    environment:
+      POSTGRES_USER: hungcop
+      POSTGRES_PASSWORD: hungcop290987
+      POSTGRES_DB: jwt_security
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - jwt-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hungcop -d jwt_security"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine  # Cho caching (optional)
+    container_name: redis-jwt-raspi
+    ports:
+      - "6379:6379"
+    networks:
+      - jwt-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  # Monitoring với Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-raspi
+    ports:
+      - "9090:9090"
+    networks:
+      - jwt-network
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  jwt-network:
+    driver: bridge

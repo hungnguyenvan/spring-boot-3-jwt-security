@@ -21,8 +21,8 @@ public class SecurityApplication {
 		SpringApplication.run(SecurityApplication.class, args);
 	}
 
-	@Bean
-	@Profile("!test")
+	//@Bean
+	//@Profile("!test")
 	public CommandLineRunner commandLineRunner(
 			AuthenticationService service
 	) {

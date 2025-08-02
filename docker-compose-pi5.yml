@@ -1,0 +1,170 @@
+# Docker Compose cho Raspberry Pi 5
+# Tối ưu cho ARM64 architecture
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine  # Lightweight, tương thích ARM64
+    container_name: postgres-jwt-pi5
+    
+    environment:
+      POSTGRES_USER: hungcop
+      POSTGRES_PASSWORD: hungcop290987
+      POSTGRES_DB: jwt_security
+      PGDATA: /var/lib/postgresql/data/pgdata
+      
+      # Tối ưu cho Pi 5
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    
+    # Cấu hình PostgreSQL tối ưu cho Pi 5 (4GB RAM)
+    command: >
+      postgres
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=8MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+      -c max_connections=100
+      -c shared_preload_libraries=''
+      -c log_statement=none
+      -c log_min_duration_statement=2000
+      -c log_checkpoints=on
+      -c log_connections=on
+      -c log_disconnections=on
+      -c log_lock_waits=on
+      -c log_temp_files=0
+      -c track_activities=on
+      -c track_counts=on
+      -c track_io_timing=on
+      -c track_functions=none
+    
+    volumes:
+      # Persistent data storage
+      - postgres_data:/var/lib/postgresql/data
+      # Mount schema file for initialization
+      - ./database_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      # Configuration file (optional)
+      # - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    
+    ports:
+      - "5432:5432"
+    
+    networks:
+      - jwt-network
+    
+    # Resource limits cho Pi 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'      # Tối đa 2 cores 
+          memory: 1G       # Tối đa 1GB RAM
+        reservations:
+          cpus: '0.5'      # Tối thiểu 0.5 core
+          memory: 256M     # Tối thiểu 256MB RAM
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hungcop -d jwt_security"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Redis cho caching (optional - giúp tăng performance)
+  redis:
+    image: redis:7-alpine
+    container_name: redis-jwt-pi5
+    
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --appendfsync everysec
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --tcp-keepalive 300
+      --timeout 0
+    
+    volumes:
+      - redis_data:/data
+    
+    ports:
+      - "6379:6379"
+    
+    networks:
+      - jwt-network
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+
+  # pgAdmin (optional - web interface cho PostgreSQL)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin-pi5
+    
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    
+    ports:
+      - "5050:80"
+    
+    networks:
+      - jwt-network
+    
+    depends_on:
+      - postgres
+    
+    restart: unless-stopped
+    
+    profiles:
+      - admin  # Chỉ start khi dùng --profile admin
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/docker-data/postgres
+  
+  redis_data:
+    driver: local
+  
+  pgadmin_data:
+    driver: local
+
+networks:
+  jwt-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: jwt-br0
+      com.docker.network.driver.mtu: 1500

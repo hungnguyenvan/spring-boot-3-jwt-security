@@ -1,0 +1,52 @@
+# Production configuration for Raspberry Pi
+spring:
+  profiles:
+    active: prod
+  datasource:
+    url: jdbc:postgresql://localhost:5432/jwt_security
+    username: hungcop
+    password: hungcop290987
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+# Server configuration for Raspberry Pi
+server:
+  port: 8080
+  address: 0.0.0.0  # Allow external connections
+
+application:
+  security:
+    jwt:
+      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      expiration: 86400000 # a day
+      refresh-token:
+        expiration: 604800000 # 7 days
+
+# Logging configuration
+logging:
+  level:
+    com.alibou.security: INFO
+    org.springframework.security: WARN
+  file:
+    name: logs/spring-boot-app.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
