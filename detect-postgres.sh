@@ -37,13 +37,13 @@ find_postgres_container() {
         
         # Test connection
         echo -e "${BLUE}Testing connection...${NC}"
-        if docker exec "$container_name" pg_isready -U jwt_user -d jwt_security > /dev/null 2>&1; then
+        if docker exec "$container_name" pg_isready -U hungcop -d jwt_security > /dev/null 2>&1; then
             echo -e "${GREEN}✅ Database is ready${NC}"
             
             # Show database info
             echo ""
             echo -e "${YELLOW}Database Information:${NC}"
-            docker exec "$container_name" psql -U jwt_user -d jwt_security -c "
+            docker exec "$container_name" psql -U hungcop -d jwt_security -c "
                 SELECT 
                     current_database() as database,
                     current_user as user,
@@ -53,7 +53,7 @@ find_postgres_container() {
             # Show table counts
             echo ""
             echo -e "${YELLOW}Table Counts:${NC}"
-            docker exec "$container_name" psql -U jwt_user -d jwt_security -c "
+            docker exec "$container_name" psql -U hungcop -d jwt_security -c "
                 SELECT 
                     'Users' as table_name, COUNT(*) as count FROM _user
                 UNION ALL
@@ -87,7 +87,12 @@ update_scripts() {
         return 1
     fi
     
+    # Detect database user from container environment
+    local db_user=$(docker exec "$container_name" printenv POSTGRES_USER 2>/dev/null || echo "hungcop")
+    
     echo -e "${BLUE}=== Updating Scripts ===${NC}"
+    echo -e "${YELLOW}Container: $container_name${NC}"
+    echo -e "${YELLOW}Database User: $db_user${NC}"
     
     # List of scripts to update
     local scripts=("check-database.sh" "quick-db-check.sh" "monitor-database.sh")
@@ -99,8 +104,9 @@ update_scripts() {
             # Create backup
             cp "$script" "$script.backup"
             
-            # Update container name
+            # Update container name and user
             sed -i "s/DB_CONTAINER=\".*\"/DB_CONTAINER=\"$container_name\"/" "$script"
+            sed -i "s/DB_USER=\".*\"/DB_USER=\"$db_user\"/" "$script"
             
             echo -e "${GREEN}✅ Updated $script${NC}"
         else
@@ -109,7 +115,9 @@ update_scripts() {
     done
     
     echo ""
-    echo -e "${GREEN}✅ All scripts updated with container name: $container_name${NC}"
+    echo -e "${GREEN}✅ All scripts updated with:${NC}"
+    echo -e "${CYAN}   Container: $container_name${NC}"
+    echo -e "${CYAN}   User: $db_user${NC}"
 }
 
 # Main script logic

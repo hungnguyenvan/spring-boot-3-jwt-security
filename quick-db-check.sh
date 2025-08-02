@@ -11,7 +11,7 @@ NC='\033[0m'
 
 DB_CONTAINER="postgres-jwt-optimized"
 DB_NAME="jwt_security"
-DB_USER="jwt_user"
+DB_USER="hungcop"
 
 echo -e "${BLUE}=== Quick Database Check ===${NC}"
 
