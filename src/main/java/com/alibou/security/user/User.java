@@ -8,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.Collection;
 import java.util.List;
@@ -28,7 +29,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class User implements UserDetails {
 
   @Id
-  @GeneratedValue
+  @GeneratedValue(generator = "_user_id_seq")
+  @SequenceGenerator(name = "_user_id_seq", sequenceName = "_user_id_seq", allocationSize = 1)
   private Integer id;
   private String firstname;
   private String lastname;
