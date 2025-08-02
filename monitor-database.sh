@@ -11,7 +11,7 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-DB_CONTAINER="postgres-container"
+DB_CONTAINER="postgres-jwt-optimized"
 DB_NAME="jwt_security"
 DB_USER="jwt_user"
 

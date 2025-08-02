@@ -13,7 +13,7 @@ PURPLE='\033[0;35m'
 NC='\033[0m' # No Color
 
 # Database connection settings
-DB_CONTAINER="postgres-container"
+DB_CONTAINER="postgres-jwt-optimized"
 DB_NAME="jwt_security"
 DB_USER="jwt_user"
 DB_HOST="localhost"
