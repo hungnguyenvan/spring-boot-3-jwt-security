@@ -22,8 +22,17 @@ import static com.alibou.security.user.Permission.EDITOR_UPDATE;
 public enum Role {
 
   USER(Collections.emptySet()),
+  EDITOR(
+          Set.of(
+                  EDITOR_READ,
+                  EDITOR_UPDATE,
+                  EDITOR_DELETE,
+                  EDITOR_CREATE
+          )
+  ),
   ADMIN(
           Set.of(
+                  // Admin has FULL permissions - both admin and editor
                   ADMIN_READ,
                   ADMIN_UPDATE,
                   ADMIN_DELETE,
@@ -33,17 +42,7 @@ public enum Role {
                   EDITOR_DELETE,
                   EDITOR_CREATE
           )
-  ),
-  EDITOR(
-          Set.of(
-                  EDITOR_READ,
-                  EDITOR_UPDATE,
-                  EDITOR_DELETE,
-                  EDITOR_CREATE
-          )
-  )
-
-  ;
+  );
 
   @Getter
   private final Set<Permission> permissions;

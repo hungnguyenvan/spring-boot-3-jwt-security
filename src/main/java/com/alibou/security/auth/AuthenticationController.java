@@ -69,7 +69,7 @@ public class AuthenticationController {
   @PostMapping(value = "/delete-user", 
                consumes = "application/json", 
                produces = "application/json")
-  // @PreAuthorize("hasAuthority('ROLE_ADMIN')") // Tạm thời comment để test
+  @PreAuthorize("hasRole('ADMIN')") 
   public ResponseEntity<String> deleteUser(@RequestBody DeleteUserRequest request) {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     log.info("Delete user request - Current user: {}, Authorities: {}", 
