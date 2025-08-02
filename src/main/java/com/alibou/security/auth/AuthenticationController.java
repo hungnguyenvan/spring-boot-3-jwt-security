@@ -80,7 +80,10 @@ public class AuthenticationController {
         .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     
     if (!isAdmin) {
-        return ResponseEntity.status(403).body("Access denied - ADMIN role required");
+        // Return authorities trong error message để debug
+        return ResponseEntity.status(403).body(
+            "Access denied - ADMIN role required. Current authorities: " + auth.getAuthorities()
+        );
     }
     
     service.deleteUserByEmail(request.getEmail());
