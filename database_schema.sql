@@ -59,12 +59,42 @@ ALTER SEQUENCE token_id_seq OWNED BY token.id;
 -- Create book table
 CREATE TABLE book (
     id INTEGER NOT NULL DEFAULT nextval('book_id_seq') PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
     author VARCHAR(255) NOT NULL,
-    isbn VARCHAR(255) NOT NULL,
+    isbn VARCHAR(20),
+    description VARCHAR(1000),
+    book_type_id INTEGER,
+    
+    -- File management fields
+    file_path VARCHAR(500),
+    file_name VARCHAR(100),
+    file_format VARCHAR(10),
+    file_size BIGINT,
+    
+    -- Pricing and access control
+    is_free BOOLEAN NOT NULL DEFAULT TRUE,
+    price DECIMAL(10,2),
+    downloadable BOOLEAN NOT NULL DEFAULT TRUE,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    
+    -- Publication info
+    publisher VARCHAR(255),
+    publication_year INTEGER,
+    language VARCHAR(50),
+    page_count INTEGER,
+    
+    -- Rating and statistics
+    rating DECIMAL(3,2) DEFAULT 0.00,
+    download_count INTEGER DEFAULT 0,
+    view_count INTEGER DEFAULT 0,
+    
+    -- Audit fields
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by INTEGER,
-    last_modified_by INTEGER
+    last_modified_by INTEGER,
+    
+    CONSTRAINT fk_book_book_type FOREIGN KEY (book_type_id) REFERENCES book_type(id) ON DELETE SET NULL
 );
 
 -- Set sequence ownership
@@ -135,7 +165,15 @@ CREATE INDEX idx_user_email ON _user(email);
 CREATE INDEX idx_user_username ON _user(username);
 CREATE INDEX idx_token_user_id ON token(user_id);
 CREATE INDEX idx_token_value ON token(token);
+CREATE INDEX idx_book_title ON book(title);
+CREATE INDEX idx_book_author ON book(author);
 CREATE INDEX idx_book_isbn ON book(isbn);
+CREATE INDEX idx_book_type_id ON book(book_type_id);
+CREATE INDEX idx_book_is_free ON book(is_free);
+CREATE INDEX idx_book_downloadable ON book(downloadable);
+CREATE INDEX idx_book_active ON book(active);
+CREATE INDEX idx_book_file_format ON book(file_format);
+CREATE INDEX idx_book_rating ON book(rating);
 CREATE INDEX idx_user_profile_user_id ON user_profile(user_id);
 CREATE INDEX idx_user_profile_activity_status ON user_profile(activity_status);
 CREATE INDEX idx_user_profile_city ON user_profile(city);
@@ -179,13 +217,23 @@ INSERT INTO editor_book_type_permission (user_id, book_type_id, can_edit, can_de
 (2, 1, TRUE, FALSE, TRUE),  -- Editor can edit Fiction books
 (2, 3, TRUE, TRUE, TRUE);   -- Editor can edit and delete Business books
 
--- Sample books
-INSERT INTO book (author, isbn) VALUES
-('Robert C. Martin', '978-0132350884'),
-('Joshua Bloch', '978-0134685991'),
-('Gang of Four', '978-0201633610'),
-('Martin Fowler', '978-0321127426'),
-('Kent Beck', '978-0321146533');
+-- Sample books with enhanced data
+INSERT INTO book (title, author, isbn, description, book_type_id, file_path, file_name, file_format, file_size, is_free, price, downloadable, publisher, publication_year, language, page_count) VALUES
+('Clean Code: A Handbook of Agile Software Craftsmanship', 'Robert C. Martin', '978-0132350884', 'Hướng dẫn viết code sạch và hiệu quả cho developer', 2, '/books/technical/clean-code.pdf', 'clean-code.pdf', 'PDF', 15728640, FALSE, 29.99, TRUE, 'Prentice Hall', 2008, 'English', 464),
+('Effective Java', 'Joshua Bloch', '978-0134685991', 'Best practices cho lập trình Java', 2, '/books/technical/effective-java.pdf', 'effective-java.pdf', 'PDF', 18350080, FALSE, 34.99, TRUE, 'Addison-Wesley', 2018, 'English', 416),
+('Design Patterns: Elements of Reusable Object-Oriented Software', 'Gang of Four', '978-0201633610', 'Các mẫu thiết kế phần mềm cơ bản', 2, '/books/technical/design-patterns.pdf', 'design-patterns.pdf', 'PDF', 12582912, TRUE, NULL, TRUE, 'Addison-Wesley', 1994, 'English', 395),
+('Refactoring: Improving the Design of Existing Code', 'Martin Fowler', '978-0321127426', 'Kỹ thuật tái cấu trúc code hiệu quả', 2, '/books/technical/refactoring.pdf', 'refactoring.pdf', 'PDF', 14680064, FALSE, 39.99, TRUE, 'Addison-Wesley', 2019, 'English', 448),
+('Test Driven Development: By Example', 'Kent Beck', '978-0321146533', 'Phương pháp phát triển phần mềm hướng test', 2, '/books/technical/tdd-by-example.pdf', 'tdd-by-example.pdf', 'PDF', 8388608, TRUE, NULL, TRUE, 'Addison-Wesley', 2002, 'English', 240),
+('Dế Mèn Phiêu Lưu Ký', 'Tô Hoài', '978-604-1-00001-1', 'Truyện thiếu nhi kinh điển Việt Nam', 1, '/books/fiction/de-men-phieu-luu-ky.pdf', 'de-men-phieu-luu-ky.pdf', 'PDF', 5242880, TRUE, NULL, TRUE, 'NXB Kim Đồng', 1941, 'Vietnamese', 180),
+('Khởi Nghiệp Lean', 'Eric Ries', '978-604-1-12345-6', 'Phương pháp khởi nghiệp tinh gọn', 3, '/books/business/khoi-nghiep-lean.pdf', 'khoi-nghiep-lean.pdf', 'PDF', 10485760, FALSE, 19.99, TRUE, 'NXB Trẻ', 2011, 'Vietnamese', 320);
+
+UPDATE book SET rating = 4.5, download_count = 1250, view_count = 3420 WHERE id = 1;
+UPDATE book SET rating = 4.7, download_count = 980, view_count = 2150 WHERE id = 2;
+UPDATE book SET rating = 4.3, download_count = 2100, view_count = 5680 WHERE id = 3;
+UPDATE book SET rating = 4.4, download_count = 750, view_count = 1890 WHERE id = 4;
+UPDATE book SET rating = 4.2, download_count = 1680, view_count = 3240 WHERE id = 5;
+UPDATE book SET rating = 4.8, download_count = 5200, view_count = 12500 WHERE id = 6;
+UPDATE book SET rating = 4.1, download_count = 340, view_count = 890 WHERE id = 7;
 
 -- Add comments to tables
 COMMENT ON TABLE _user IS 'User accounts table';
@@ -197,7 +245,11 @@ COMMENT ON COLUMN token.token_type IS 'Token type, typically BEARER';
 COMMENT ON COLUMN token.revoked IS 'Whether token has been revoked';
 COMMENT ON COLUMN token.expired IS 'Whether token has expired';
 
-COMMENT ON TABLE book IS 'Books management table';
+COMMENT ON TABLE book IS 'Books management table with file storage and pricing';
+COMMENT ON COLUMN book.file_path IS 'File storage path on server';
+COMMENT ON COLUMN book.is_free IS 'Whether the book is free or requires payment';
+COMMENT ON COLUMN book.downloadable IS 'Whether users can download the book file';
+COMMENT ON COLUMN book.active IS 'Whether the book is active and available';
 
 COMMENT ON TABLE user_profile IS 'User profile information table';
 COMMENT ON COLUMN user_profile.activity_status IS 'User activity status: ACTIVE, INACTIVE, SUSPENDED, PENDING_VERIFICATION, or BANNED';
