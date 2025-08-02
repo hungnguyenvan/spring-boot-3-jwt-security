@@ -27,6 +27,21 @@
 | POST | `/api/v1/books` | Tạo book mới | ✅ | ANY |
 | GET | `/api/v1/books` | Lấy danh sách tất cả books | ✅ | ANY |
 
+## 👤 **User Profile APIs** - `/api/v1/profiles`
+
+| Method | Endpoint | Description | Auth Required | Role Required |
+|--------|----------|-------------|---------------|---------------|
+| GET | `/api/v1/profiles/me` | Lấy profile của user hiện tại | ✅ | ANY |
+| PUT | `/api/v1/profiles/me` | Cập nhật profile của user hiện tại | ✅ | ANY |
+| GET | `/api/v1/profiles/{userId}` | Lấy profile của user cụ thể | ✅ | EDITOR/ADMIN |
+| PUT | `/api/v1/profiles/{userId}` | Cập nhật profile của user cụ thể | ✅ | ADMIN |
+| GET | `/api/v1/profiles` | Lấy danh sách tất cả profiles (tìm kiếm, phân trang) | ✅ | EDITOR/ADMIN |
+| GET | `/api/v1/profiles/status/{status}` | Lấy profiles theo trạng thái hoạt động | ✅ | EDITOR/ADMIN |
+| PATCH | `/api/v1/profiles/{userId}/activity-status` | Cập nhật trạng thái hoạt động | ✅ | ADMIN |
+| PATCH | `/api/v1/profiles/{userId}/verify-email` | Xác thực email | ✅ | ADMIN |
+| PATCH | `/api/v1/profiles/{userId}/verify-phone` | Xác thực số điện thoại | ✅ | ADMIN |
+| GET | `/api/v1/profiles/activity-statuses` | Lấy danh sách các trạng thái hoạt động | ✅ | ANY |
+
 ## 🎯 **Demo/Testing APIs**
 
 ### Demo Controller - `/api/v1/demo-controller`
@@ -302,5 +317,5 @@ public class SecurityHeadersConfig {
 
 ---
 
-**Total APIs: 21 endpoints across 6 controllers**
+**Total APIs: 32 endpoints across 7 controllers**
 **Security Level: Production-Ready with Enhancement Recommendations**
