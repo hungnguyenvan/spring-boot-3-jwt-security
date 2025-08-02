@@ -1,14 +1,22 @@
 -- Database schema for Spring Boot JWT Security Project
 -- Compatible with PostgreSQL
 
--- Drop tables if they exist (in correct order due to foreign key constraints)
+-- Drop tables and sequences if they exist (in correct order due to foreign key constraints)
 DROP TABLE IF EXISTS token CASCADE;
 DROP TABLE IF EXISTS book CASCADE;
 DROP TABLE IF EXISTS _user CASCADE;
+DROP SEQUENCE IF EXISTS _user_seq CASCADE;
+DROP SEQUENCE IF EXISTS book_seq CASCADE;
+DROP SEQUENCE IF EXISTS token_seq CASCADE;
+
+-- Create sequences for auto-increment columns
+CREATE SEQUENCE _user_seq START 1 INCREMENT 1;
+CREATE SEQUENCE book_seq START 1 INCREMENT 1;
+CREATE SEQUENCE token_seq START 1 INCREMENT 1;
 
 -- Create _user table
 CREATE TABLE _user (
-    id SERIAL PRIMARY KEY,
+    id INTEGER NOT NULL DEFAULT nextval('_user_seq') PRIMARY KEY,
     firstname VARCHAR(255) NOT NULL,
     lastname VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -22,9 +30,12 @@ CREATE TABLE _user (
     last_modified_by INTEGER
 );
 
+-- Set sequence ownership
+ALTER SEQUENCE _user_seq OWNED BY _user.id;
+
 -- Create token table
 CREATE TABLE token (
-    id SERIAL PRIMARY KEY,
+    id INTEGER NOT NULL DEFAULT nextval('token_seq') PRIMARY KEY,
     token TEXT UNIQUE NOT NULL,
     token_type VARCHAR(50) NOT NULL DEFAULT 'BEARER',
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
@@ -33,9 +44,12 @@ CREATE TABLE token (
     CONSTRAINT fk_token_user FOREIGN KEY (user_id) REFERENCES _user(id) ON DELETE CASCADE
 );
 
+-- Set sequence ownership
+ALTER SEQUENCE token_seq OWNED BY token.id;
+
 -- Create book table
 CREATE TABLE book (
-    id SERIAL PRIMARY KEY,
+    id INTEGER NOT NULL DEFAULT nextval('book_seq') PRIMARY KEY,
     author VARCHAR(255) NOT NULL,
     isbn VARCHAR(255) NOT NULL,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -43,6 +57,9 @@ CREATE TABLE book (
     created_by INTEGER,
     last_modified_by INTEGER
 );
+
+-- Set sequence ownership
+ALTER SEQUENCE book_seq OWNED BY book.id;
 
 -- Create indexes for better performance
 CREATE INDEX idx_user_email ON _user(email);

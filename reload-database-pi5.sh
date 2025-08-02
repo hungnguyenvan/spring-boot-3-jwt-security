@@ -1,22 +1,26 @@
 #!/bin/bash
 
-# Script để reload database với schema đã fix
+# Script để reload database với schema đã fix (bao gồm sequences)
 # File: reload-database-pi5.sh
 
-echo "🔄 Reloading PostgreSQL database with corrected schema..."
+echo "🔄 Reloading PostgreSQL database with corrected schema (with sequences)..."
 
 # Stop và remove container cũ
 echo "Stopping and removing old PostgreSQL container..."
 docker stop postgres-jwt-optimized 2>/dev/null || echo "Container not running"
 docker rm postgres-jwt-optimized 2>/dev/null || echo "Container not found"
 
-# Xóa data cũ
-echo "Cleaning old data..."
+# Xóa data cũ HOÀN TOÀN
+echo "Cleaning old data COMPLETELY..."
 sudo rm -rf /opt/docker-data/postgres/*
+sudo rm -rf /opt/docker-data/postgres/.*  2>/dev/null || true
 sudo chown hungcop:hungcop /opt/docker-data/postgres
 
+echo "📋 Verifying data directory is empty:"
+ls -la /opt/docker-data/postgres/
+
 # Start container mới với schema đã fix
-echo "Starting fresh PostgreSQL container..."
+echo "Starting fresh PostgreSQL container with sequences..."
 docker run -d \
   --name postgres-jwt-optimized \
   -e POSTGRES_USER=hungcop \
@@ -28,8 +32,8 @@ docker run -d \
   --restart unless-stopped \
   postgres:15-alpine
 
-echo "⏳ Waiting for PostgreSQL to initialize..."
-sleep 20
+echo "⏳ Waiting for PostgreSQL to initialize (30 seconds)..."
+sleep 30
 
 # Kiểm tra container status
 echo "📊 Container status:"
@@ -59,12 +63,16 @@ echo "📚 Checking books table structure:"
 docker exec postgres-jwt-optimized psql -U hungcop -d jwt_security -c "\d book"
 
 echo ""
-echo "📊 Checking sample data:"
+echo "� Checking sequences:"
+docker exec postgres-jwt-optimized psql -U hungcop -d jwt_security -c "\ds"
+
+echo ""
+echo "�📊 Checking sample data:"
 docker exec postgres-jwt-optimized psql -U hungcop -d jwt_security -c "SELECT COUNT(*) as users FROM _user;"
 docker exec postgres-jwt-optimized psql -U hungcop -d jwt_security -c "SELECT COUNT(*) as books FROM book;"
 
 echo ""
-echo "✅ Database reloaded with corrected schema!"
+echo "✅ Database reloaded with corrected schema and sequences!"
 echo "🚀 Now you can run the Spring Boot application:"
 echo "   export SPRING_PROFILES_ACTIVE=pi5"
 echo "   mvn spring-boot:run -Dspring-boot.run.profiles=pi5"
