@@ -1,0 +1,24 @@
+[Unit]
+Description=Spring Boot JWT Security Application
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=forking
+User=hungcop
+Group=hungcop
+WorkingDirectory=/home/hungcop/spring-boot-3-jwt-security
+ExecStart=/home/hungcop/spring-boot-3-jwt-security/app-control.sh start
+ExecStop=/home/hungcop/spring-boot-3-jwt-security/app-control.sh stop
+ExecReload=/home/hungcop/spring-boot-3-jwt-security/app-control.sh restart
+PIDFile=/home/hungcop/spring-boot-3-jwt-security/app.pid
+Restart=on-failure
+RestartSec=30
+TimeoutStartSec=120
+TimeoutStopSec=30
+
+Environment=SPRING_PROFILES_ACTIVE=pi5
+Environment=JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
+
+[Install]
+WantedBy=multi-user.target
