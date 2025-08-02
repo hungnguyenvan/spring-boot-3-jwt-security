@@ -4,8 +4,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +19,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationController {
 
   private final AuthenticationService service;
@@ -59,6 +63,9 @@ public class AuthenticationController {
                produces = "application/json")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<String> deleteUser(@RequestBody DeleteUserRequest request) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    log.info("Delete user request - Current user: {}, Authorities: {}", 
+             auth.getName(), auth.getAuthorities());
     service.deleteUserByEmail(request.getEmail());
     return ResponseEntity.ok("User deleted successfully");
   }
