@@ -74,7 +74,7 @@ show_tables() {
 show_structure() {
     echo -e "${BLUE}=== TABLE STRUCTURES ===${NC}"
     
-    for table in "_user" "token" "book"; do
+    for table in "_user" "user_profile" "book_type" "book" "editor_book_type_permission" "token"; do
         echo -e "${YELLOW}Structure of table: $table${NC}"
         execute_sql_quiet "
             SELECT 
@@ -118,16 +118,34 @@ show_sequences() {
         FROM _user_id_seq
         UNION ALL
         SELECT 
-            'token_id_seq' as sequence_name,
+            'user_profile_id_seq' as sequence_name,
             last_value,
             is_called 
-        FROM token_id_seq
+        FROM user_profile_id_seq
+        UNION ALL
+        SELECT 
+            'book_type_id_seq' as sequence_name,
+            last_value,
+            is_called 
+        FROM book_type_id_seq
         UNION ALL
         SELECT 
             'book_id_seq' as sequence_name,
             last_value,
             is_called 
-        FROM book_id_seq;
+        FROM book_id_seq
+        UNION ALL
+        SELECT 
+            'editor_permission_id_seq' as sequence_name,
+            last_value,
+            is_called 
+        FROM editor_permission_id_seq
+        UNION ALL
+        SELECT 
+            'token_id_seq' as sequence_name,
+            last_value,
+            is_called 
+        FROM token_id_seq;
     "
     echo ""
 }
@@ -144,14 +162,58 @@ show_counts() {
         FROM _user
         UNION ALL
         SELECT 
-            'Tokens' as table_name,
+            'User Profiles' as table_name,
             COUNT(*) as record_count
-        FROM token
+        FROM user_profile
+        UNION ALL
+        SELECT 
+            'Book Types' as table_name,
+            COUNT(*) as record_count
+        FROM book_type
         UNION ALL
         SELECT 
             'Books' as table_name,
             COUNT(*) as record_count
-        FROM book;
+        FROM book
+        UNION ALL
+        SELECT 
+            'Editor Permissions' as table_name,
+            COUNT(*) as record_count
+        FROM editor_book_type_permission
+        UNION ALL
+        SELECT 
+            'Tokens' as table_name,
+            COUNT(*) as record_count
+        FROM token;
+    "
+    echo ""
+    
+    echo -e "${YELLOW}Book Statistics:${NC}"
+    execute_sql_quiet "
+        SELECT 
+            'Free Books' as metric,
+            COUNT(*) as count
+        FROM book WHERE is_free = true AND active = true
+        UNION ALL
+        SELECT 
+            'Paid Books' as metric,
+            COUNT(*) as count
+        FROM book WHERE is_free = false AND active = true
+        UNION ALL
+        SELECT 
+            'Downloadable Books' as metric,
+            COUNT(*) as count
+        FROM book WHERE downloadable = true AND active = true
+        UNION ALL
+        SELECT 
+            'Total Downloads' as metric,
+            SUM(download_count) as count
+        FROM book WHERE active = true
+        UNION ALL
+        SELECT 
+            'Total Views' as metric,
+            SUM(view_count) as count
+        FROM book WHERE active = true;
     "
     echo ""
 }
@@ -161,17 +223,21 @@ show_users() {
     echo -e "${BLUE}=== USER DATA ===${NC}"
     execute_sql_quiet "
         SELECT 
-            id,
-            firstname,
-            lastname,
-            email,
-            username,
-            role,
-            locked,
-            created_date,
-            last_modified_date
-        FROM _user
-        ORDER BY id;
+            u.id,
+            u.firstname,
+            u.lastname,
+            u.email,
+            u.username,
+            u.role,
+            u.locked,
+            up.full_name,
+            up.phone_number,
+            up.city,
+            up.activity_status,
+            u.created_date
+        FROM _user u
+        LEFT JOIN user_profile up ON u.id = up.user_id
+        ORDER BY u.id;
     "
     echo ""
 }
@@ -199,15 +265,62 @@ show_books() {
     echo -e "${BLUE}=== BOOK DATA ===${NC}"
     execute_sql_quiet "
         SELECT 
+            b.id,
+            b.title,
+            b.author,
+            b.isbn,
+            bt.name as book_type,
+            b.is_free,
+            b.price,
+            b.downloadable,
+            b.active,
+            b.file_format,
+            b.rating,
+            b.download_count,
+            b.view_count,
+            b.created_date
+        FROM book b
+        LEFT JOIN book_type bt ON b.book_type_id = bt.id
+        ORDER BY b.id;
+    "
+    echo ""
+}
+
+# Function to show book types
+show_book_types() {
+    echo -e "${BLUE}=== BOOK TYPES ===${NC}"
+    execute_sql_quiet "
+        SELECT 
             id,
-            author,
-            isbn,
-            created_date,
-            last_modified_date,
-            created_by,
-            last_modified_by
-        FROM book
-        ORDER BY id;
+            name,
+            description,
+            category,
+            active,
+            color_code,
+            sort_order,
+            created_date
+        FROM book_type
+        ORDER BY sort_order, id;
+    "
+    echo ""
+}
+
+# Function to show editor permissions
+show_editor_permissions() {
+    echo -e "${BLUE}=== EDITOR PERMISSIONS ===${NC}"
+    execute_sql_quiet "
+        SELECT 
+            ebtp.id,
+            u.username as editor,
+            bt.name as book_type,
+            ebtp.can_edit,
+            ebtp.can_delete,
+            ebtp.active,
+            ebtp.created_date
+        FROM editor_book_type_permission ebtp
+        JOIN _user u ON ebtp.user_id = u.id
+        JOIN book_type bt ON ebtp.book_type_id = bt.id
+        ORDER BY u.username, bt.name;
     "
     echo ""
 }
@@ -371,8 +484,10 @@ show_all() {
     show_relationships
     show_indexes
     show_users
-    show_tokens
+    show_book_types
     show_books
+    show_editor_permissions
+    show_tokens
     test_connectivity
 }
 
@@ -409,6 +524,14 @@ case "$1" in
     books)
         check_container
         show_books
+        ;;
+    book-types)
+        check_container
+        show_book_types
+        ;;
+    editor-permissions)
+        check_container
+        show_editor_permissions
         ;;
     relationships)
         check_container

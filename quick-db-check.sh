@@ -36,19 +36,88 @@ SELECT
     'Users' as table_name, COUNT(*) as count FROM _user
 UNION ALL
 SELECT 
-    'Tokens' as table_name, COUNT(*) as count FROM token  
+    'User Profiles' as table_name, COUNT(*) as count FROM user_profile
 UNION ALL
 SELECT 
-    'Books' as table_name, COUNT(*) as count FROM book;
+    'Book Types' as table_name, COUNT(*) as count FROM book_type
+UNION ALL
+SELECT 
+    'Books' as table_name, COUNT(*) as count FROM book
+UNION ALL
+SELECT 
+    'Editor Permissions' as table_name, COUNT(*) as count FROM editor_book_type_permission
+UNION ALL
+SELECT 
+    'Tokens' as table_name, COUNT(*) as count FROM token;
 "
 
 echo ""
 echo -e "${YELLOW}👥 Users:${NC}"
-query "SELECT id, firstname, lastname, email, role FROM _user ORDER BY id;"
+query "SELECT id, firstname, lastname, email, username, role, locked FROM _user ORDER BY id;"
+
+echo ""
+echo -e "${YELLOW}👤 User Profiles:${NC}"
+query "
+SELECT 
+    up.id,
+    u.username,
+    up.full_name,
+    up.phone_number,
+    up.city,
+    up.country,
+    up.activity_status
+FROM user_profile up
+JOIN _user u ON up.user_id = u.id
+ORDER BY up.id;
+"
+
+echo ""
+echo -e "${YELLOW}📖 Book Types:${NC}"
+query "
+SELECT 
+    id,
+    name,
+    category,
+    active,
+    sort_order,
+    color_code
+FROM book_type 
+ORDER BY sort_order, id;
+"
 
 echo ""
 echo -e "${YELLOW}📚 Books:${NC}"
-query "SELECT id, author, isbn FROM book ORDER BY id;"
+query "
+SELECT 
+    b.id,
+    b.title,
+    b.author,
+    bt.name as book_type,
+    b.is_free,
+    b.downloadable,
+    b.download_count,
+    b.rating
+FROM book b
+LEFT JOIN book_type bt ON b.book_type_id = bt.id
+ORDER BY b.id;
+"
+
+echo ""
+echo -e "${YELLOW}🔐 Editor Permissions:${NC}"
+query "
+SELECT 
+    ebtp.id,
+    u.username as editor,
+    bt.name as book_type,
+    ebtp.can_edit,
+    ebtp.can_delete,
+    ebtp.active
+FROM editor_book_type_permission ebtp
+JOIN _user u ON ebtp.user_id = u.id
+JOIN book_type bt ON ebtp.book_type_id = bt.id
+WHERE ebtp.active = true
+ORDER BY u.username, bt.name;
+"
 
 echo ""
 echo -e "${YELLOW}🔑 Active Tokens:${NC}"
@@ -71,10 +140,38 @@ SELECT
     '_user_id_seq' as seq_name, last_value FROM _user_id_seq
 UNION ALL
 SELECT 
-    'token_id_seq' as seq_name, last_value FROM token_id_seq
+    'user_profile_id_seq' as seq_name, last_value FROM user_profile_id_seq
 UNION ALL
 SELECT 
-    'book_id_seq' as seq_name, last_value FROM book_id_seq;
+    'book_type_id_seq' as seq_name, last_value FROM book_type_id_seq
+UNION ALL
+SELECT 
+    'book_id_seq' as seq_name, last_value FROM book_id_seq
+UNION ALL
+SELECT 
+    'editor_permission_id_seq' as seq_name, last_value FROM editor_permission_id_seq
+UNION ALL
+SELECT 
+    'token_id_seq' as seq_name, last_value FROM token_id_seq;
+"
+
+echo ""
+echo -e "${YELLOW}📈 Statistics:${NC}"
+query "
+SELECT 
+    'Free Books' as metric, COUNT(*) as value FROM book WHERE is_free = true AND active = true
+UNION ALL
+SELECT 
+    'Paid Books' as metric, COUNT(*) as value FROM book WHERE is_free = false AND active = true
+UNION ALL
+SELECT 
+    'Downloadable Books' as metric, COUNT(*) as value FROM book WHERE downloadable = true AND active = true
+UNION ALL
+SELECT 
+    'Active Book Types' as metric, COUNT(*) as value FROM book_type WHERE active = true
+UNION ALL
+SELECT 
+    'Active User Profiles' as metric, COUNT(*) as value FROM user_profile WHERE activity_status = 'ACTIVE';
 "
 
 echo ""
