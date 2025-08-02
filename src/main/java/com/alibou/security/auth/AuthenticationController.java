@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -61,13 +62,26 @@ public class AuthenticationController {
   @PostMapping(value = "/delete-user", 
                consumes = "application/json", 
                produces = "application/json")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('ROLE_ADMIN')")
   public ResponseEntity<String> deleteUser(@RequestBody DeleteUserRequest request) {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     log.info("Delete user request - Current user: {}, Authorities: {}", 
              auth.getName(), auth.getAuthorities());
     service.deleteUserByEmail(request.getEmail());
     return ResponseEntity.ok("User deleted successfully");
+  }
+
+  @PostMapping(value = "/debug-authorities", 
+               consumes = "application/json", 
+               produces = "application/json")
+  public ResponseEntity<?> debugAuthorities() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    return ResponseEntity.ok(Map.of(
+        "user", auth.getName(),
+        "authorities", auth.getAuthorities(),
+        "isAdmin", auth.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))
+    ));
   }
 
 
