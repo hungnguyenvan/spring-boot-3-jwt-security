@@ -18,8 +18,8 @@ CREATE TABLE _user (
     locked BOOLEAN NOT NULL DEFAULT FALSE,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by VARCHAR(255),
-    last_modified_by VARCHAR(255)
+    created_by INTEGER,
+    last_modified_by INTEGER
 );
 
 -- Create token table
@@ -40,8 +40,8 @@ CREATE TABLE book (
     isbn VARCHAR(255) NOT NULL,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_modified_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by VARCHAR(255),
-    last_modified_by VARCHAR(255)
+    created_by INTEGER,
+    last_modified_by INTEGER
 );
 
 -- Create indexes for better performance
