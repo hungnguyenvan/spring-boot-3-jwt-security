@@ -56,6 +56,9 @@ public class JwtService {
           UserDetails userDetails,
           long expiration
   ) {
+    // Add authorities to the token claims
+    extraClaims.put("authorities", userDetails.getAuthorities());
+    
     return Jwts
             .builder()
             .setClaims(extraClaims)
