@@ -56,6 +56,12 @@ public class AuthenticationController {
                consumes = "application/json", 
                produces = "application/json")
   public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
+    // Debug authorities ngay ở đây
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    log.info("Reset password - User: {}, Authorities: {}", 
+             auth != null ? auth.getName() : "null", 
+             auth != null ? auth.getAuthorities() : "null");
+    
     service.resetPassword(request.getEmail(), request.getNewPassword());
     return ResponseEntity.ok("Password reset successful");
   }
@@ -63,11 +69,20 @@ public class AuthenticationController {
   @PostMapping(value = "/delete-user", 
                consumes = "application/json", 
                produces = "application/json")
-  @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+  // @PreAuthorize("hasAuthority('ROLE_ADMIN')") // Tạm thời comment để test
   public ResponseEntity<String> deleteUser(@RequestBody DeleteUserRequest request) {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     log.info("Delete user request - Current user: {}, Authorities: {}", 
              auth.getName(), auth.getAuthorities());
+    
+    // Manual check thay vì @PreAuthorize
+    boolean isAdmin = auth.getAuthorities().stream()
+        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    
+    if (!isAdmin) {
+        return ResponseEntity.status(403).body("Access denied - ADMIN role required");
+    }
+    
     service.deleteUserByEmail(request.getEmail());
     return ResponseEntity.ok("User deleted successfully");
   }
