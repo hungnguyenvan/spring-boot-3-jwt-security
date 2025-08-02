@@ -1,0 +1,55 @@
+server:
+  port: 8080
+  address: 0.0.0.0
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/jwt_security
+    username: hungcop
+    password: hungcop290987
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: false
+
+  sql:
+    init:
+      mode: never
+
+logging:
+  level:
+    com.alibou.security: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN
+  file:
+    name: logs/application.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      
+# Pi 5 specific configurations
+app:
+  name: "Spring Boot JWT Security - Pi 5"
+  description: "Running on Raspberry Pi 5 with PostgreSQL Docker"
+  environment: "pi5-production"
