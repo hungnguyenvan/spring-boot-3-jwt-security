@@ -48,6 +48,7 @@ services:
       # Sử dụng named volume cho performance tốt nhất
       - postgres_data_optimized:/var/lib/postgresql/data
       - ./database_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - /opt/docker-data/logs:/var/log/postgresql
       
     ports:
       - "5432:5432"
@@ -106,7 +107,7 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /opt/docker-data/postgres  # SSD mount point nếu có
+      device: /opt/docker-data/postgres  # External mount point for persistence
       
   redis_data_optimized:
     driver: local

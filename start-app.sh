@@ -20,13 +20,15 @@ fi
 # Tạo thư mục logs
 mkdir -p logs
 
-# Kiểm tra PostgreSQL
-echo "🔍 Kiểm tra PostgreSQL..."
-if systemctl is-active --quiet postgresql; then
-    echo "✅ PostgreSQL đang chạy"
+# Kiểm tra PostgreSQL Docker container
+echo "🔍 Kiểm tra PostgreSQL Docker container..."
+if docker ps | grep -q postgres-jwt-optimized; then
+    echo "✅ PostgreSQL container đang chạy"
 else
-    echo "🔄 Khởi động PostgreSQL..."
-    sudo systemctl start postgresql
+    echo "🔄 Khởi động PostgreSQL container..."
+    docker start postgres-jwt-optimized || docker-compose -f docker-compose-optimized.yml up -d postgres
+    echo "⏳ Đợi PostgreSQL khởi động..."
+    sleep 10
 fi
 
 # Build ứng dụng
@@ -38,14 +40,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Chạy với production profile
-echo "🌟 Starting application with production profile..."
-export SPRING_PROFILES_ACTIVE=prod
+# Chạy với pi5 profile cho PostgreSQL Docker
+echo "🌟 Starting application with pi5 profile (PostgreSQL Docker)..."
+export SPRING_PROFILES_ACTIVE=pi5
 
 # Chạy ứng dụng
-mvn spring-boot:run -Dspring-boot.run.profiles=prod
+mvn spring-boot:run -Dspring-boot.run.profiles=pi5
 
 echo "🎉 Application started successfully!"
 echo "📱 Access at: http://$(hostname -I | awk '{print $1}'):8080"
-echo "🔍 H2 Console: http://$(hostname -I | awk '{print $1}'):8080/h2-console"
+echo "�️ Database: PostgreSQL Docker (localhost:5432)"
 echo "📊 Health Check: http://$(hostname -I | awk '{print $1}'):8080/actuator/health"
