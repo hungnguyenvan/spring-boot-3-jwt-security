@@ -1,5 +1,6 @@
 package com.alibou.security.core.domain.service;
 
+import com.alibou.security.core.domain.entity.BookTypePermission;
 import com.alibou.security.user.User;
 
 /**

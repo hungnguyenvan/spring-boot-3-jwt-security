@@ -15,18 +15,26 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BookController {
 
-    private final BookService service;
+    private final BookRepository bookRepository;
 
     @PostMapping
     public ResponseEntity<?> save(
             @RequestBody BookRequest request
     ) {
-        service.save(request);
+        // Simple save implementation
+        Book book = Book.builder()
+                .title(request.getTitle())
+                .author(request.getAuthor())
+                .isbn(request.getIsbn())
+                .synopsis(request.getSynopsis())
+                .category(request.getCategory())
+                .build();
+        bookRepository.save(book);
         return ResponseEntity.accepted().build();
     }
 
     @GetMapping
     public ResponseEntity<List<Book>> findAllBooks() {
-        return ResponseEntity.ok(service.findAll());
+        return ResponseEntity.ok(bookRepository.findAll());
     }
 }

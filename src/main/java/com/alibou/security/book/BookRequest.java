@@ -23,6 +23,12 @@ public class BookRequest {
 
     @Size(max = 1000, message = "Mô tả không được vượt quá 1000 ký tự")
     private String description;
+    
+    @Size(max = 1000, message = "Tóm tắt không được vượt quá 1000 ký tự")
+    private String synopsis;
+    
+    @Size(max = 100, message = "Thể loại không được vượt quá 100 ký tự")
+    private String category;
 
     private Integer bookTypeId;
 

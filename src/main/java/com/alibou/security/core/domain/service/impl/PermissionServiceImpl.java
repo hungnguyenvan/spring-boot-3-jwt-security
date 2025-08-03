@@ -133,7 +133,7 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
-    public BookTypePermission getBookTypePermission(User user, Integer bookTypeId) {
+    public com.alibou.security.core.domain.entity.BookTypePermission getBookTypePermission(User user, Integer bookTypeId) {
         log.debug("Getting book type permissions for user {} on book type {}", 
                  user.getId(), bookTypeId);
         
@@ -141,7 +141,26 @@ public class PermissionServiceImpl implements PermissionService {
         boolean canDelete = canDeleteBookType(user, bookTypeId);
         boolean canView = hasEditorAccess(user); // Editors and admins can view book types
         
-        return new BookTypePermission(canEdit, canDelete, canView);
+        // Find existing permission or create new one
+        Optional<com.alibou.security.core.domain.entity.BookTypePermission> existingPermission = 
+            bookTypePermissionRepository.findByUserIdAndBookTypeId(user.getId(), bookTypeId);
+            
+        if (existingPermission.isPresent()) {
+            return existingPermission.get();
+        }
+        
+        // Create new permission entity
+        var bookType = bookTypeRepository.findById(bookTypeId)
+            .orElseThrow(() -> new RuntimeException("BookType not found"));
+            
+        return com.alibou.security.core.domain.entity.BookTypePermission.builder()
+            .user(user)
+            .bookType(bookType)
+            .canEdit(canEdit)
+            .canDelete(canDelete)
+            .canView(canView)
+            .isActive(true)
+            .build();
     }
 
     @Override

@@ -16,7 +16,13 @@ public class BookResponse {
     private String author;
     private String isbn;
     private String description;
+    private String synopsis;
+    private String category;
     private BookTypeResponse bookType;
+    private String bookTypeName;
+    private boolean archived;
+    private Boolean shareable;
+    private boolean available;
     
     // File information
     private String filePath;

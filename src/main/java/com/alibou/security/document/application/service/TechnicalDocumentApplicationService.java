@@ -28,12 +28,10 @@ public class TechnicalDocumentApplicationService {
     private final TechnicalDocumentRepository technicalDocumentRepository;
     private final TechnicalDocumentMapper technicalDocumentMapper;
     
-    @Override
     protected TechnicalDocumentRepository getRepository() {
         return technicalDocumentRepository;
     }
     
-    @Override
     protected TechnicalDocumentMapper getMapper() {
         return technicalDocumentMapper;
     }

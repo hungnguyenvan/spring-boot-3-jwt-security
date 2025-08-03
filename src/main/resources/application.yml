@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: default
   datasource:
     url: jdbc:h2:mem:testdb
     username: sa
@@ -15,8 +17,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
     database: h2
     database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
   servlet:
     multipart:
       enabled: true

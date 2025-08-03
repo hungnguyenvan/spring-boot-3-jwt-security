@@ -44,6 +44,13 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID>
     }
 
     @Override
+    public void deleteAllById(Iterable<? extends ID> ids) {
+        for (ID id : ids) {
+            deleteById(id);
+        }
+    }
+
+    @Override
     public List<T> findAllActive() {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<T> query = cb.createQuery(entityInformation.getJavaType());

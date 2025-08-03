@@ -193,9 +193,9 @@ public class LocalFileStorageService implements FileStorageService {
                 contentType,
                 fileSize,
                 calculateChecksum(Files.readAllBytes(path)),
-                LocalDateTime.ofInstant(attributes.creationTime().toInstant(), 
+                LocalDateTime.ofInstant(((java.nio.file.attribute.FileTime)attributes.get("creationTime")).toInstant(), 
                                       java.time.ZoneId.systemDefault()),
-                LocalDateTime.ofInstant(attributes.lastModifiedTime().toInstant(), 
+                LocalDateTime.ofInstant(((java.nio.file.attribute.FileTime)attributes.get("lastModifiedTime")).toInstant(), 
                                       java.time.ZoneId.systemDefault()),
                 category,
                 uploadedBy
@@ -315,7 +315,7 @@ public class LocalFileStorageService implements FileStorageService {
                           try {
                               var attrs = Files.readAttributes(file, "basic:*");
                               LocalDateTime fileTime = LocalDateTime.ofInstant(
-                                  attrs.creationTime().toInstant(), 
+                                  ((java.nio.file.attribute.FileTime)attrs.get("creationTime")).toInstant(), 
                                   java.time.ZoneId.systemDefault());
                               return fileTime.isBefore(cutoffTime);
                           } catch (Exception e) {

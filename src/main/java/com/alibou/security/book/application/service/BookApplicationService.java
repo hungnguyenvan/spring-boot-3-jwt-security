@@ -3,17 +3,18 @@ package com.alibou.security.book.application.service;
 import com.alibou.security.book.Book;
 import com.alibou.security.book.BookRequest;
 import com.alibou.security.book.BookResponse;
-import com.alibou.security.core.application.service.BaseApplicationService;
+import com.alibou.security.book.dto.BookStatistics;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Application service interface for Book management
  * Extends base service with book-specific operations
  */
-public interface BookApplicationService extends BaseApplicationService<Book, BookRequest, BookResponse, Integer> {
+public interface BookApplicationService {
     
     /**
      * Find books by book type

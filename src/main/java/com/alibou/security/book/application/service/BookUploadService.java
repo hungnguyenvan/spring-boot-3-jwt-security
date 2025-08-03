@@ -82,6 +82,11 @@ public interface BookUploadService {
      * Clean up orphaned files (files without corresponding book records)
      */
     OrphanCleanupResult cleanupOrphanedFiles();
+    
+    /**
+     * Get download URL for book file
+     */
+    String getDownloadUrl(Integer bookId, Integer userId);
 }
 
 /**
