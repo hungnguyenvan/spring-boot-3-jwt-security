@@ -13,9 +13,7 @@ public enum Permission {
     EDITOR_READ("editor:read"),
     EDITOR_UPDATE("editor:update"),
     EDITOR_CREATE("editor:create"),
-    EDITOR_DELETE("editor:delete")
-
-    ;
+    EDITOR_DELETE("editor:delete");
 
     @Getter
     private final String permission;

@@ -82,37 +82,3 @@ public interface BookApplicationService {
      */
     String getDownloadUrl(Integer userId, Integer bookId);
 }
-
-/**
- * Book statistics DTO
- */
-class BookStatistics {
-    private final long totalBooks;
-    private final long freeBooks;
-    private final long paidBooks;
-    private final long downloadableBooks;
-    private final double averageRating;
-    private final long totalDownloads;
-    private final long totalViews;
-    
-    public BookStatistics(long totalBooks, long freeBooks, long paidBooks, 
-                         long downloadableBooks, double averageRating, 
-                         long totalDownloads, long totalViews) {
-        this.totalBooks = totalBooks;
-        this.freeBooks = freeBooks;
-        this.paidBooks = paidBooks;
-        this.downloadableBooks = downloadableBooks;
-        this.averageRating = averageRating;
-        this.totalDownloads = totalDownloads;
-        this.totalViews = totalViews;
-    }
-    
-    // Getters
-    public long getTotalBooks() { return totalBooks; }
-    public long getFreeBooks() { return freeBooks; }
-    public long getPaidBooks() { return paidBooks; }
-    public long getDownloadableBooks() { return downloadableBooks; }
-    public double getAverageRating() { return averageRating; }
-    public long getTotalDownloads() { return totalDownloads; }
-    public long getTotalViews() { return totalViews; }
-}
