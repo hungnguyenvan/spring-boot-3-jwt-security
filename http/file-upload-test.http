@@ -1,0 +1,268 @@
+### File Upload API Testing
+### Base URL
+@baseUrl = http://localhost:8088/api/v1
+
+### Authentication (get JWT token first)
+# POST {{baseUrl}}/auth/authenticate
+# Content-Type: application/json
+# 
+# {
+#   "email": "admin@mail.com",
+#   "password": "password"
+# }
+
+### Set JWT token (replace with actual token)
+@jwt = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBtYWlsLmNvbSIsImlhdCI6MTczNTA3NzEyNCwiZXhwIjoxNzM1MTYzNTI0fQ.example
+
+### ==========================================================
+### 1. TWO-STEP FILE UPLOAD PROCESS
+### ==========================================================
+
+### Step 1: Upload file to temporary location
+POST {{baseUrl}}/documents/upload/temporary
+Authorization: Bearer {{jwt}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="engine_schematic.pdf"
+Content-Type: application/pdf
+
+< ./sample-files/engine_schematic.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Step 2: Create document with uploaded file (use tempFileId from previous response)
+POST {{baseUrl}}/documents/upload/create-document
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "temporaryFileId": "REPLACE_WITH_TEMP_FILE_ID_FROM_STEP_1",
+  "productId": 1,
+  "title": "Engine Schematic V2024",
+  "documentType": "SCHEMATIC",
+  "description": "Detailed engine schematic for troubleshooting and maintenance",
+  "category": "Engine",
+  "subCategory": "Schematic",
+  "version": "v2024.1",
+  "language": "EN",
+  "isPublic": true,
+  "downloadable": true,
+  "sortOrder": 1
+}
+
+### ==========================================================
+### 2. SINGLE-STEP FILE UPLOAD PROCESS
+### ==========================================================
+
+### Upload file and create document in one step
+POST {{baseUrl}}/documents/upload/single-step
+Authorization: Bearer {{jwt}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="repair_manual.pdf"
+Content-Type: application/pdf
+
+< ./sample-files/repair_manual.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="productId"
+
+1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Repair Manual 2024
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="documentType"
+
+REPAIR_GUIDE
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="description"
+
+Complete repair manual with step-by-step instructions
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="category"
+
+Maintenance
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="subCategory"
+
+Repair Guide
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="version"
+
+v2024.1
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="language"
+
+EN
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="isPublic"
+
+true
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="downloadable"
+
+true
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="sortOrder"
+
+2
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### ==========================================================
+### 3. TEMPORARY FILE MANAGEMENT
+### ==========================================================
+
+### Get temporary file information
+GET {{baseUrl}}/documents/upload/temporary/REPLACE_WITH_TEMP_FILE_ID
+Authorization: Bearer {{jwt}}
+
+###
+
+### Delete temporary file
+DELETE {{baseUrl}}/documents/upload/temporary/REPLACE_WITH_TEMP_FILE_ID
+Authorization: Bearer {{jwt}}
+
+### ==========================================================
+### 4. DOCUMENT METADATA MANAGEMENT
+### ==========================================================
+
+### Update document metadata (without changing file)
+PUT {{baseUrl}}/documents/upload/1/metadata
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "title": "Updated Engine Schematic V2024.2",
+  "description": "Updated schematic with latest specifications",
+  "version": "v2024.2",
+  "category": "Engine",
+  "subCategory": "Updated Schematic",
+  "isPublic": true,
+  "downloadable": true,
+  "sortOrder": 1
+}
+
+###
+
+### Replace document file (keep metadata)
+PUT {{baseUrl}}/documents/upload/1/file
+Authorization: Bearer {{jwt}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="updated_engine_schematic.pdf"
+Content-Type: application/pdf
+
+< ./sample-files/updated_engine_schematic.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### ==========================================================
+### 5. UPLOAD STATISTICS
+### ==========================================================
+
+### Get upload statistics
+GET {{baseUrl}}/documents/upload/statistics
+Authorization: Bearer {{jwt}}
+
+### ==========================================================
+### 6. ERROR TESTING
+### ==========================================================
+
+### Test file too large (adjust file size to exceed limit)
+POST {{baseUrl}}/documents/upload/temporary
+Authorization: Bearer {{jwt}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="large_file.pdf"
+Content-Type: application/pdf
+
+< ./sample-files/large_file.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Test invalid file extension
+POST {{baseUrl}}/documents/upload/temporary
+Authorization: Bearer {{jwt}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="malicious.exe"
+Content-Type: application/octet-stream
+
+< ./sample-files/malicious.exe
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Test missing temporary file
+POST {{baseUrl}}/documents/upload/create-document
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "temporaryFileId": "non-existent-file-id",
+  "productId": 1,
+  "title": "Test Document",
+  "documentType": "MANUAL"
+}
+
+###
+
+### Test invalid product ID
+POST {{baseUrl}}/documents/upload/create-document
+Authorization: Bearer {{jwt}}
+Content-Type: application/json
+
+{
+  "temporaryFileId": "VALID_TEMP_FILE_ID",
+  "productId": 99999,
+  "title": "Test Document",
+  "documentType": "MANUAL"
+}
+
+### ==========================================================
+### 7. INTEGRATION WITH EXISTING DOCUMENT APIs
+### ==========================================================
+
+### After uploading, test document retrieval
+GET {{baseUrl}}/technical-documents/1
+Authorization: Bearer {{jwt}}
+
+###
+
+### Search for uploaded documents
+GET {{baseUrl}}/technical-documents/search?query=engine&page=0&size=10
+Authorization: Bearer {{jwt}}
+
+###
+
+### Get documents by product
+GET {{baseUrl}}/technical-documents/product/1?page=0&size=10
+Authorization: Bearer {{jwt}}
+
+### ==========================================================
+### FILE UPLOAD WORKFLOW EXAMPLES
+### ==========================================================
+
+### Example 1: Technical Manual Upload (2-step process)
+# 1. Upload file → get temp ID
+# 2. Create document with metadata
+
+### Example 2: Quick Schematic Upload (single-step)
+# All in one request with form data
+
+### Example 3: Document Update Workflow
+# 1. Upload new file version
+# 2. Update metadata
+# 3. Replace existing file
+
+### Example 4: Bulk Document Management
+# Use temp upload for multiple files
+# Create documents in batch
+# Organize by hierarchy

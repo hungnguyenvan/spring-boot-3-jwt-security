@@ -1,0 +1,321 @@
+### Hierarchical Permission System Tests
+### Test Admin permission management and Editor permission checking
+
+# Variables
+@baseUrl = http://localhost:8080/api/v1
+@adminToken = {{auth_response.response.body.access_token}}
+@editorToken = {{editor_auth_response.response.body.access_token}}
+@editorUserId = 2
+
+###
+# 1. Admin Login
+POST {{baseUrl}}/auth/authenticate
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "password"
+}
+
+> {%
+client.global.set("adminToken", response.body.access_token);
+%}
+
+###
+# 2. Editor Login 
+POST {{baseUrl}}/auth/authenticate
+Content-Type: application/json
+
+{
+  "username": "editor",
+  "password": "password"
+}
+
+> {%
+client.global.set("editorToken", response.body.access_token);
+client.global.set("editorUserId", response.body.user_id);
+%}
+
+###
+# 3. Get All Hierarchy Data (for permission setup)
+GET {{baseUrl}}/document-fields
+Authorization: Bearer {{adminToken}}
+
+###
+# 4. Create Hierarchical Permission - Full Access to Engine Field
+POST {{baseUrl}}/admin/hierarchy-permissions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "editorId": {{editorUserId}},
+  "documentFieldId": 1,
+  "productionYearId": null,
+  "manufacturerId": null,
+  "productSeriesId": null,
+  "productId": null,
+  "canUpload": true,
+  "canEdit": true,
+  "canDelete": true,
+  "canView": true,
+  "scopeDescription": "Full access to all Engine documents"
+}
+
+###
+# 5. Create Hierarchical Permission - Upload Only to Specific Product
+POST {{baseUrl}}/admin/hierarchy-permissions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "editorId": {{editorUserId}},
+  "documentFieldId": null,
+  "productionYearId": null,
+  "manufacturerId": null,
+  "productSeriesId": null,
+  "productId": 3,
+  "canUpload": true,
+  "canEdit": false,
+  "canDelete": false,
+  "canView": true,
+  "scopeDescription": "Upload-only access to specific product"
+}
+
+###
+# 6. Create Hierarchical Permission - Edit Access to Manufacturer
+POST {{baseUrl}}/admin/hierarchy-permissions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "editorId": {{editorUserId}},
+  "documentFieldId": null,
+  "productionYearId": null,
+  "manufacturerId": 2,
+  "productSeriesId": null,
+  "productId": null,
+  "canUpload": false,
+  "canEdit": true,
+  "canDelete": false,
+  "canView": true,
+  "scopeDescription": "Edit access to Toyota manufacturer"
+}
+
+###
+# 7. Get All Permissions (Admin View)
+GET {{baseUrl}}/admin/hierarchy-permissions
+Authorization: Bearer {{adminToken}}
+
+###
+# 8. Get Editor Permissions
+GET {{baseUrl}}/admin/hierarchy-permissions/editor/{{editorUserId}}
+Authorization: Bearer {{adminToken}}
+
+###
+# 9. Editor: View My Permissions
+GET {{baseUrl}}/editor/my-permissions
+Authorization: Bearer {{editorToken}}
+
+###
+# 10. Editor: Get Products I Can Upload To
+GET {{baseUrl}}/editor/my-permissions/uploadable-products
+Authorization: Bearer {{editorToken}}
+
+###
+# 11. Editor: Check Upload Permission for Product
+GET {{baseUrl}}/editor/my-permissions/check/upload/1
+Authorization: Bearer {{editorToken}}
+
+###
+# 12. Editor: Check Edit Permission for Product
+GET {{baseUrl}}/editor/my-permissions/check/edit/1
+Authorization: Bearer {{editorToken}}
+
+###
+# 13. Editor: Check Delete Permission for Product
+GET {{baseUrl}}/editor/my-permissions/check/delete/1
+Authorization: Bearer {{editorToken}}
+
+###
+# 14. Update Permission - Modify Existing Permission
+PUT {{baseUrl}}/admin/hierarchy-permissions/1
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "canUpload": true,
+  "canEdit": true,
+  "canDelete": true,
+  "canView": true,
+  "scopeDescription": "Updated: Full access to Engine documents with delete permission"
+}
+
+###
+# 15. Get Permission Statistics
+GET {{baseUrl}}/admin/hierarchy-permissions/statistics
+Authorization: Bearer {{adminToken}}
+
+###
+# 16. Test File Upload with Permission Check
+POST {{baseUrl}}/documents/upload/temporary
+Content-Type: multipart/form-data
+Authorization: Bearer {{editorToken}}
+
+< ./test-files/sample-manual.pdf
+
+###
+# 17. Create Document with Permission Validation
+POST {{baseUrl}}/documents/upload/create-document
+Content-Type: application/json
+Authorization: Bearer {{editorToken}}
+
+{
+  "temporaryFileId": "temp_file_id_from_step_16",
+  "productId": 1,
+  "title": "Engine Manual with Permission Check",
+  "documentType": "MANUAL",
+  "description": "Testing permission-based upload",
+  "version": "1.0",
+  "language": "EN",
+  "isPublic": false
+}
+
+###
+# 18. Test Permission Denied Upload (Different Product)
+POST {{baseUrl}}/documents/upload/create-document
+Content-Type: application/json
+Authorization: Bearer {{editorToken}}
+
+{
+  "temporaryFileId": "temp_file_id_from_step_16",
+  "productId": 99,
+  "title": "Unauthorized Upload Test",
+  "documentType": "MANUAL",
+  "description": "Should fail due to no permission",
+  "version": "1.0",
+  "language": "EN",
+  "isPublic": false
+}
+
+###
+# 19. Admin: Check Upload Permission for Editor/Product
+GET {{baseUrl}}/admin/hierarchy-permissions/check/upload/{{editorUserId}}/1
+Authorization: Bearer {{adminToken}}
+
+###
+# 20. Delete Permission
+DELETE {{baseUrl}}/admin/hierarchy-permissions/1
+Authorization: Bearer {{adminToken}}
+
+###
+# 21. Verify Permission Deleted
+GET {{baseUrl}}/admin/hierarchy-permissions/editor/{{editorUserId}}
+Authorization: Bearer {{adminToken}}
+
+###
+# 22. Test Conflict Detection - Try Creating Conflicting Permission
+POST {{baseUrl}}/admin/hierarchy-permissions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "editorId": {{editorUserId}},
+  "documentFieldId": 1,
+  "productionYearId": null,
+  "manufacturerId": null,
+  "productSeriesId": null,
+  "productId": null,
+  "canUpload": false,
+  "canEdit": false,
+  "canDelete": false,
+  "canView": true,
+  "scopeDescription": "Should conflict with existing permission"
+}
+
+###
+# 23. Test Hierarchy Inheritance - Product Level Permission
+POST {{baseUrl}}/admin/hierarchy-permissions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "editorId": {{editorUserId}},
+  "documentFieldId": 1,
+  "productionYearId": 1,
+  "manufacturerId": 1,
+  "productSeriesId": 1,
+  "productId": 1,
+  "canUpload": true,
+  "canEdit": true,
+  "canDelete": false,
+  "canView": true,
+  "scopeDescription": "Specific product permission within Engine field"
+}
+
+###
+# 24. Test Permission Summary
+GET {{baseUrl}}/editor/my-permissions
+Authorization: Bearer {{editorToken}}
+
+###
+# 25. Test Invalid Permission Creation (Non-existent Editor)
+POST {{baseUrl}}/admin/hierarchy-permissions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "editorId": 999,
+  "documentFieldId": 1,
+  "canUpload": true,
+  "canEdit": false,
+  "canDelete": false,
+  "canView": true,
+  "scopeDescription": "Should fail - editor doesn't exist"
+}
+
+###
+# 26. Test Invalid Permission Creation (Non-existent Product)
+POST {{baseUrl}}/admin/hierarchy-permissions
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "editorId": {{editorUserId}},
+  "productId": 999,
+  "canUpload": true,
+  "canEdit": false,
+  "canDelete": false,
+  "canView": true,
+  "scopeDescription": "Should fail - product doesn't exist"
+}
+
+###
+# 27. Test Editor Access Denied (Try to create permission)
+POST {{baseUrl}}/admin/hierarchy-permissions
+Content-Type: application/json
+Authorization: Bearer {{editorToken}}
+
+{
+  "editorId": {{editorUserId}},
+  "documentFieldId": 1,
+  "canUpload": true,
+  "canEdit": true,
+  "canDelete": true,
+  "canView": true,
+  "scopeDescription": "Should fail - editor cannot create permissions"
+}
+
+###
+# 28. Test Multiple Permission Levels
+GET {{baseUrl}}/products
+Authorization: Bearer {{editorToken}}
+
+###
+# 29. Test Permission Tree View
+GET {{baseUrl}}/editor/my-permissions
+Authorization: Bearer {{editorToken}}
+
+###
+# 30. Final Statistics Check
+GET {{baseUrl}}/admin/hierarchy-permissions/statistics
+Authorization: Bearer {{adminToken}}

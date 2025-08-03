@@ -1,0 +1,473 @@
+### ===========================================
+### HIERARCHICAL DOCUMENT LIBRARY API TESTS
+### ===========================================
+
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+### 1. AUTHENTICATION
+### Get JWT Token for testing
+POST {{baseUrl}}/api/v1/auth/authenticate
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@library.com",
+  "password": "admin123"
+}
+
+### Store the token from response above
+@authToken = YOUR_JWT_TOKEN_HERE
+
+### ===========================================
+### 2. DOCUMENT FIELDS (LĨnh VỰC TÀI LIỆU)
+### ===========================================
+
+### 2.1. Create Auto field
+POST {{baseUrl}}/api/v1/document-fields
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Auto",
+  "code": "AUTO",
+  "description": "Automotive technical documents and manuals",
+  "color": "#FF5733",
+  "sortOrder": 1
+}
+
+### 2.2. Create Electrical Bike field  
+POST {{baseUrl}}/api/v1/document-fields
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Electrical Bike",
+  "code": "EBIKE",
+  "description": "Electric bicycle technical documentation",
+  "color": "#33C3FF",
+  "sortOrder": 2
+}
+
+### 2.3. Get all document fields
+GET {{baseUrl}}/api/v1/document-fields
+Authorization: Bearer {{authToken}}
+
+### 2.4. Search document fields
+GET {{baseUrl}}/api/v1/document-fields/search?query=auto
+Authorization: Bearer {{authToken}}
+
+### 2.5. Get field by name
+GET {{baseUrl}}/api/v1/document-fields/by-name/Auto
+Authorization: Bearer {{authToken}}
+
+### 2.6. Get field statistics
+GET {{baseUrl}}/api/v1/document-fields/statistics
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 3. PRODUCTION YEARS (NĂM SẢN XUẤT)
+### ===========================================
+
+### 3.1. Create year 2008 for Auto field
+POST {{baseUrl}}/api/v1/production-years
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "year": 2008,
+  "fieldId": 1,
+  "description": "Automotive products manufactured in 2008"
+}
+
+### 3.2. Create year 2010 for Auto field
+POST {{baseUrl}}/api/v1/production-years
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "year": 2010,
+  "fieldId": 1,
+  "description": "Automotive products manufactured in 2010"
+}
+
+### 3.3. Create year 2015 for Electrical Bike field
+POST {{baseUrl}}/api/v1/production-years
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "year": 2015,
+  "fieldId": 2,
+  "description": "Electric bikes manufactured in 2015"
+}
+
+### 3.4. Get production years for Auto field
+GET {{baseUrl}}/api/v1/production-years?fieldId=1
+Authorization: Bearer {{authToken}}
+
+### 3.5. Get years in range
+GET {{baseUrl}}/api/v1/production-years/range?fieldId=1&startYear=2008&endYear=2010
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 4. MANUFACTURERS (NHÀ SẢN XUẤT)
+### ===========================================
+
+### 4.1. Create Toyota manufacturer for 2008
+POST {{baseUrl}}/api/v1/manufacturers
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Toyota",
+  "yearId": 1,
+  "description": "Toyota Motor Corporation - Leading automotive manufacturer",
+  "website": "https://toyota.com",
+  "country": "Japan",
+  "sortOrder": 1
+}
+
+### 4.2. Create Honda manufacturer for 2010
+POST {{baseUrl}}/api/v1/manufacturers
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Honda",
+  "yearId": 2,
+  "description": "Honda Motor Co., Ltd. - Japanese automotive and motorcycle manufacturer",
+  "website": "https://honda.com",
+  "country": "Japan",
+  "sortOrder": 2
+}
+
+### 4.3. Get manufacturers by year
+GET {{baseUrl}}/api/v1/manufacturers?yearId=1
+Authorization: Bearer {{authToken}}
+
+### 4.4. Search manufacturers
+GET {{baseUrl}}/api/v1/manufacturers/search?query=toyota&yearId=1
+Authorization: Bearer {{authToken}}
+
+### 4.5. Get manufacturer statistics
+GET {{baseUrl}}/api/v1/manufacturers/1/statistics
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 5. PRODUCT SERIES (DÒNG SẢN PHẨM)
+### ===========================================
+
+### 5.1. Create Mazda series for Toyota
+POST {{baseUrl}}/api/v1/product-series
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Mazda",
+  "manufacturerId": 1,
+  "description": "Mazda series vehicles under Toyota partnership",
+  "launchYear": 2008,
+  "isActive": true,
+  "sortOrder": 1
+}
+
+### 5.2. Create Camry series for Toyota
+POST {{baseUrl}}/api/v1/product-series
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Camry",
+  "manufacturerId": 1,
+  "description": "Toyota Camry mid-size sedan series",
+  "launchYear": 2008,
+  "isActive": true,
+  "sortOrder": 2
+}
+
+### 5.3. Get product series by manufacturer
+GET {{baseUrl}}/api/v1/product-series?manufacturerId=1
+Authorization: Bearer {{authToken}}
+
+### 5.4. Search product series
+GET {{baseUrl}}/api/v1/product-series/search?query=mazda&manufacturerId=1
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 6. PRODUCTS (SẢN PHẨM)
+### ===========================================
+
+### 6.1. Create Mazda2 product
+POST {{baseUrl}}/api/v1/products
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Mazda2",
+  "seriesId": 1,
+  "description": "Mazda2 compact car - reliable and fuel efficient",
+  "modelCode": "DE",
+  "specifications": {
+    "engine": "1.5L DOHC",
+    "transmission": "5-speed manual / 4-speed automatic",
+    "fuelType": "Gasoline",
+    "drivetrain": "Front-wheel drive",
+    "bodyStyle": "4-door sedan, 5-door hatchback"
+  },
+  "launchDate": "2008-01-15",
+  "discontinueDate": null,
+  "isActive": true,
+  "sortOrder": 1
+}
+
+### 6.2. Create Camry 2.4L product
+POST {{baseUrl}}/api/v1/products
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "Camry 2.4L",
+  "seriesId": 2,
+  "description": "Toyota Camry with 2.4L engine - mid-size sedan",
+  "modelCode": "ACV40",
+  "specifications": {
+    "engine": "2.4L 4-cylinder",
+    "transmission": "5-speed automatic",
+    "fuelType": "Gasoline",
+    "drivetrain": "Front-wheel drive",
+    "bodyStyle": "4-door sedan"
+  },
+  "launchDate": "2008-06-01",
+  "discontinueDate": null,
+  "isActive": true,
+  "sortOrder": 1
+}
+
+### 6.3. Get products by series
+GET {{baseUrl}}/api/v1/products?seriesId=1
+Authorization: Bearer {{authToken}}
+
+### 6.4. Search products
+GET {{baseUrl}}/api/v1/products/search?query=mazda2&seriesId=1
+Authorization: Bearer {{authToken}}
+
+### 6.5. Get document types for product
+GET {{baseUrl}}/api/v1/products/1/document-types
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 7. TECHNICAL DOCUMENTS (TÀI LIỆU KỸ THUẬT)
+### ===========================================
+
+### 7.1. Create Engine Schematic document for Mazda2
+POST {{baseUrl}}/api/v1/technical-documents
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Engine Schematic",
+  "documentType": "ENGINE_SCHEMATIC",
+  "description": "Detailed engine schematic and parts diagram for Mazda2 1.5L engine",
+  "category": "MECHANICAL",
+  "subCategory": "ENGINE",
+  "productId": 1,
+  "fileName": "mazda2_engine_schematic_v1.0.pdf",
+  "filePath": "/documents/auto/2008/toyota/mazda/mazda2/engine_schematic.pdf",
+  "fileFormat": "PDF",
+  "fileSize": 2548576,
+  "version": "v1.0",
+  "language": "EN",
+  "pageCount": 45,
+  "isPublic": true,
+  "downloadable": true,
+  "checksum": "sha256:abc123def456...",
+  "sortOrder": 1
+}
+
+### 7.2. Create Window Electric Schematic document for Mazda2
+POST {{baseUrl}}/api/v1/technical-documents
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "title": "Window Electric Schematic",
+  "documentType": "ELECTRIC_SCHEMATIC",
+  "description": "Electric window system wiring diagram and troubleshooting guide",
+  "category": "ELECTRICAL",
+  "subCategory": "WIRING",
+  "productId": 1,
+  "fileName": "mazda2_window_electric_v1.2.pdf",
+  "filePath": "/documents/auto/2008/toyota/mazda/mazda2/window_electric.pdf",
+  "fileFormat": "PDF",
+  "fileSize": 1847293,
+  "version": "v1.2",
+  "language": "EN",
+  "pageCount": 28,
+  "isPublic": true,
+  "downloadable": true,
+  "checksum": "sha256:def456ghi789...",
+  "sortOrder": 2
+}
+
+### 7.3. Get documents by product
+GET {{baseUrl}}/api/v1/technical-documents?productId=1
+Authorization: Bearer {{authToken}}
+
+### 7.4. Get documents by type
+GET {{baseUrl}}/api/v1/technical-documents/by-type?documentType=ENGINE_SCHEMATIC
+Authorization: Bearer {{authToken}}
+
+### 7.5. Get documents by category
+GET {{baseUrl}}/api/v1/technical-documents/by-category?category=MECHANICAL
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 8. HIERARCHY SEARCH (TÌM KIẾM PHÂN CẤP)
+### ===========================================
+
+### 8.1. Full hierarchy search: Auto/2008/Toyota/Mazda/Mazda2/Engine Schematic
+GET {{baseUrl}}/api/v1/technical-documents/search?fieldName=Auto&year=2008&manufacturerName=Toyota&seriesName=Mazda&productName=Mazda2&documentType=ENGINE_SCHEMATIC
+Authorization: Bearer {{authToken}}
+
+### 8.2. Partial hierarchy search: Auto/2008/Toyota
+GET {{baseUrl}}/api/v1/technical-documents/search?fieldName=Auto&year=2008&manufacturerName=Toyota
+Authorization: Bearer {{authToken}}
+
+### 8.3. Search by field and year only
+GET {{baseUrl}}/api/v1/technical-documents/search?fieldName=Auto&year=2008
+Authorization: Bearer {{authToken}}
+
+### 8.4. Full text search across all documents
+GET {{baseUrl}}/api/v1/technical-documents/search?query=engine+mazda+schematic
+Authorization: Bearer {{authToken}}
+
+### 8.5. Search with pagination
+GET {{baseUrl}}/api/v1/technical-documents/search?fieldName=Auto&page=0&size=10&sort=downloadCount,desc
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 9. USER INTERACTIONS (TƯƠNG TÁC NGƯỜI DÙNG)
+### ===========================================
+
+### 9.1. Record document view
+POST {{baseUrl}}/api/v1/technical-documents/1/view
+Authorization: Bearer {{authToken}}
+
+### 9.2. Record document download
+POST {{baseUrl}}/api/v1/technical-documents/1/download
+Authorization: Bearer {{authToken}}
+
+### 9.3. Rate document (1-5 stars)
+POST {{baseUrl}}/api/v1/technical-documents/1/rate
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "rating": 4.5
+}
+
+### 9.4. Rate another document
+POST {{baseUrl}}/api/v1/technical-documents/2/rate
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "rating": 5.0
+}
+
+### ===========================================
+### 10. ANALYTICS & STATISTICS (THỐNG KÊ)
+### ===========================================
+
+### 10.1. Get overall document statistics
+GET {{baseUrl}}/api/v1/technical-documents/statistics
+Authorization: Bearer {{authToken}}
+
+### 10.2. Get popular documents
+GET {{baseUrl}}/api/v1/technical-documents/popular?limit=5
+Authorization: Bearer {{authToken}}
+
+### 10.3. Get highly rated documents
+GET {{baseUrl}}/api/v1/technical-documents/highly-rated?limit=5
+Authorization: Bearer {{authToken}}
+
+### 10.4. Get recent documents
+GET {{baseUrl}}/api/v1/technical-documents/recent?limit=5
+Authorization: Bearer {{authToken}}
+
+### 10.5. Get document types for specific product
+GET {{baseUrl}}/api/v1/technical-documents/product/1/types
+Authorization: Bearer {{authToken}}
+
+### 10.6. Get categories for specific field
+GET {{baseUrl}}/api/v1/technical-documents/field/1/categories
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 11. NAVIGATION TESTS (KIỂM TRA ĐIỀU HƯỚNG)
+### ===========================================
+
+### 11.1. Get fields by specific year
+GET {{baseUrl}}/api/v1/document-fields/by-year/2008
+Authorization: Bearer {{authToken}}
+
+### 11.2. Get fields by manufacturer
+GET {{baseUrl}}/api/v1/document-fields/by-manufacturer?manufacturerName=Toyota
+Authorization: Bearer {{authToken}}
+
+### 11.3. Get fields with production years loaded
+GET {{baseUrl}}/api/v1/document-fields/with-years
+Authorization: Bearer {{authToken}}
+
+### 11.4. Get manufacturers for specific year
+GET {{baseUrl}}/api/v1/production-years/1/manufacturers
+Authorization: Bearer {{authToken}}
+
+### 11.5. Get product series for manufacturer
+GET {{baseUrl}}/api/v1/manufacturers/1/product-series
+Authorization: Bearer {{authToken}}
+
+### 11.6. Get products for series
+GET {{baseUrl}}/api/v1/product-series/1/products
+Authorization: Bearer {{authToken}}
+
+### 11.7. Get documents for product
+GET {{baseUrl}}/api/v1/products/1/documents
+Authorization: Bearer {{authToken}}
+
+### ===========================================
+### 12. ERROR HANDLING TESTS (KIỂM TRA LỖI)
+### ===========================================
+
+### 12.1. Test with invalid field ID
+GET {{baseUrl}}/api/v1/document-fields/999
+Authorization: Bearer {{authToken}}
+
+### 12.2. Test unauthorized access (no token)
+GET {{baseUrl}}/api/v1/technical-documents
+
+### 12.3. Test invalid rating value
+POST {{baseUrl}}/api/v1/technical-documents/1/rate
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "rating": 10.0
+}
+
+### 12.4. Test create with invalid data
+POST {{baseUrl}}/api/v1/document-fields
+Authorization: Bearer {{authToken}}
+Content-Type: {{contentType}}
+
+{
+  "name": "",
+  "code": "",
+  "sortOrder": -1
+}
+
+### ===========================================
+### EXPECTED RESULT: COMPLETE HIERARCHY
+### documents/Auto/2008/Toyota/Mazda/Mazda2/Engine Schematic
+### documents/Auto/2008/Toyota/Mazda/Mazda2/Window Electric Schematic
+### ===========================================

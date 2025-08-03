@@ -17,11 +17,22 @@ spring:
         format_sql: true
     database: h2
     database-platform: org.hibernate.dialect.H2Dialect
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+      file-size-threshold: 2KB
 
-application:
+app:
   security:
     jwt:
       secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
       expiration: 86400000 # a day
       refresh-token:
         expiration: 604800000 # 7 days
+  upload:
+    dir: ./uploads
+    temp-dir: ./uploads/temp
+    max-file-size: 10485760 # 10MB
+    allowed-extensions: pdf,doc,docx,xls,xlsx,ppt,pptx,dwg,png,jpg,jpeg

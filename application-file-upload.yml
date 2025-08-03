@@ -1,0 +1,123 @@
+# File Upload Configuration for Library Management System
+
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 100MB
+      location: ./uploads/temp
+  
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 25
+
+app:
+  file-storage:
+    base-path: ./uploads
+    max-file-size: 52428800
+    allowed-types: pdf,epub,mobi,txt,doc,docx,jpg,jpeg,png,gif
+    temp-cleanup-hours: 24
+  
+  file-upload:
+    base-path: ./uploads
+    max-file-size: 50MB
+    max-request-size: 100MB
+    allowed-types: pdf,epub,mobi,txt,doc,docx,jpg,jpeg,png,gif
+    temp-directory: ./uploads/temp
+    temp-cleanup-hours: 24
+    enable-async-processing: true
+    max-concurrent-uploads: 5
+
+  security:
+    file-access:
+      enable-token-validation: true
+      token-expiration-minutes: 60
+      require-authentication: true
+
+  storage:
+    monitoring:
+      enable-cleanup-scheduler: true
+      cleanup-cron: "0 0 2 * * ?"
+      max-storage-gb: 100
+      alert-threshold-percent: 85
+
+  file-processing:
+    enable-metadata-extraction: true
+    enable-thumbnail-generation: true
+    thumbnail-size: "200x300"
+    enable-preview-generation: true
+    preview-pages: 5
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+  servlet:
+    multipart:
+      location: ./dev-uploads/temp
+
+app:
+  file-storage:
+    base-path: ./dev-uploads
+  file-upload:
+    base-path: ./dev-uploads
+    temp-directory: ./dev-uploads/temp
+    enable-async-processing: false
+
+logging:
+  level:
+    "[com.alibou.security.core.infrastructure.service]": DEBUG
+
+---  
+# Production Profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+  servlet:
+    multipart:
+      location: /var/lib/library-app/uploads/temp
+
+app:
+  file-storage:
+    base-path: /var/lib/library-app/uploads
+  file-upload:
+    base-path: /var/lib/library-app/uploads
+    temp-directory: /var/lib/library-app/uploads/temp
+    max-concurrent-uploads: 20
+  storage:
+    monitoring:
+      max-storage-gb: 1000
+
+logging:
+  level:
+    "[com.alibou.security.core.infrastructure.service]": INFO
+
+---
+# Pi5 Profile (Raspberry Pi deployment)
+spring:
+  config:
+    activate:
+      on-profile: pi5
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 50MB
+      location: /home/library/uploads/temp
+
+app:
+  file-storage:
+    base-path: /home/library/uploads
+  file-upload:
+    base-path: /home/library/uploads
+    temp-directory: /home/library/uploads/temp
+    max-concurrent-uploads: 2
+  storage:
+    monitoring:
+      max-storage-gb: 50
