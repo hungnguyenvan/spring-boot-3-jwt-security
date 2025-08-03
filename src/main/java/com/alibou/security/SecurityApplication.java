@@ -14,7 +14,7 @@ import static com.alibou.security.user.Role.ADMIN;
 import static com.alibou.security.user.Role.EDITOR;
 
 @SpringBootApplication
-@EnableJpaAuditing(auditorAwareRef = "auditorAware")
+//@EnableJpaAuditing(auditorAwareRef = "auditorAware")
 public class SecurityApplication {
 
 	public static void main(String[] args) {
