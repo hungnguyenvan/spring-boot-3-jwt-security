@@ -3,7 +3,6 @@ package com.alibou.security.book.controller;
 import com.alibou.security.book.BookRequest;
 import com.alibou.security.book.BookResponse;
 import com.alibou.security.book.application.service.*;
-import com.alibou.security.book.dto.*;
 import com.alibou.security.core.domain.service.FileStorageService;
 import com.alibou.security.core.domain.service.PermissionService;
 import com.alibou.security.user.User;

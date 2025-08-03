@@ -5,6 +5,7 @@ import com.alibou.security.core.domain.repository.BookTypePermissionRepository;
 import com.alibou.security.core.domain.service.PermissionService;
 import com.alibou.security.user.Role;
 import com.alibou.security.user.User;
+import com.alibou.security.user.UserRepository;
 import com.alibou.security.book.BookRepository;
 import com.alibou.security.book.Book;
 import com.alibou.security.booktype.BookType;
@@ -27,6 +28,7 @@ public class PermissionServiceImpl implements PermissionService {
     private final BookRepository bookRepository;
     private final BookTypePermissionRepository bookTypePermissionRepository;
     private final BookTypeRepository bookTypeRepository;
+    private final UserRepository userRepository;
 
     @Override
     public boolean canEditBookType(User user, Integer bookTypeId) {
@@ -162,10 +164,10 @@ public class PermissionServiceImpl implements PermissionService {
         return com.alibou.security.core.domain.entity.BookTypePermission.builder()
             .user(user)
             .bookType(bookType)
-            .canEdit(canEdit)
+            .canRead(canView)
+            .canWrite(canEdit)
             .canDelete(canDelete)
-            .canView(canView)
-            .isActive(true)
+            .canManage(hasAdminAccess(user))
             .build();
     }
 
@@ -174,15 +176,50 @@ public class PermissionServiceImpl implements PermissionService {
         log.info("Granting editor permission for user {} on book type {} (edit: {}, delete: {})", 
                 userId, bookTypeId, canEdit, canDelete);
         
-        // TODO: Implement with EditorBookTypePermissionRepository
-        // Create or update permission record
+        // Find existing permission or create new one
+        Optional<BookTypePermission> existingPermission = 
+            bookTypePermissionRepository.findByUserIdAndBookTypeId(userId, bookTypeId);
+            
+        if (existingPermission.isPresent()) {
+            // Update existing permission
+            BookTypePermission permission = existingPermission.get();
+            permission.setCanWrite(canEdit);
+            permission.setCanDelete(canDelete);
+            permission.setCanRead(true); // Always grant read access
+            bookTypePermissionRepository.save(permission);
+        } else {
+            // Create new permission
+            var user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            var bookType = bookTypeRepository.findById(bookTypeId)
+                .orElseThrow(() -> new RuntimeException("BookType not found"));
+            
+            BookTypePermission permission = BookTypePermission.builder()
+                .user(user)
+                .bookType(bookType)
+                .canRead(true)
+                .canWrite(canEdit)
+                .canDelete(canDelete)
+                .canManage(false)
+                .build();
+                
+            bookTypePermissionRepository.save(permission);
+        }
     }
 
     @Override
     public void revokeEditorPermission(Integer userId, Integer bookTypeId) {
         log.info("Revoking editor permission for user {} on book type {}", userId, bookTypeId);
         
-        // TODO: Implement with EditorBookTypePermissionRepository
-        // Delete or deactivate permission record
+        Optional<BookTypePermission> existingPermission = 
+            bookTypePermissionRepository.findByUserIdAndBookTypeId(userId, bookTypeId);
+            
+        if (existingPermission.isPresent()) {
+            // Remove the permission record
+            bookTypePermissionRepository.delete(existingPermission.get());
+        } else {
+            log.warn("No permission found to revoke for user {} on book type {}", userId, bookTypeId);
+        }
     }
 }

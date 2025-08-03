@@ -3,6 +3,10 @@ package com.alibou.security.document.web.controller;
 import com.alibou.security.document.application.dto.TechnicalDocumentDto;
 import com.alibou.security.document.application.service.TechnicalDocumentApplicationService;
 import com.alibou.security.document.application.service.DocumentFileUploadService;
+import com.alibou.security.document.infrastructure.web.dto.FileUploadResponse;
+import com.alibou.security.document.infrastructure.web.dto.CreateDocumentRequest;
+import com.alibou.security.document.infrastructure.web.dto.UpdateDocumentMetadataRequest;
+import com.alibou.security.document.domain.enums.DocumentType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,7 +33,6 @@ import java.util.Map;
 public class DocumentFileUploadController {
     
     private final DocumentFileUploadService fileUploadService;
-    private final TechnicalDocumentApplicationService documentService;
     
     /**
      * Step 1: Upload file only (without metadata)
@@ -98,7 +101,7 @@ public class DocumentFileUploadController {
         try {
             CreateDocumentRequest request = CreateDocumentRequest.builder()
                 .title(title)
-                .documentType(documentType)
+                .documentType(DocumentType.valueOf(documentType.toUpperCase()))
                 .description(description)
                 .category(category)
                 .subCategory(subCategory)
@@ -215,44 +218,5 @@ public class DocumentFileUploadController {
             log.error("Error getting upload statistics: {}", e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
-    }
-}
-
-/**
- * Response class for file upload
- */
-@lombok.Data
-@lombok.Builder
-@lombok.NoArgsConstructor
-@lombok.AllArgsConstructor
-class FileUploadResponse {
-    private boolean success;
-    private String message;
-    private String temporaryFileId;
-    private String originalFileName;
-    private String fileFormat;
-    private Long fileSize;
-    private String checksum;
-    private String uploadedAt;
-    private String error;
-    
-    public static FileUploadResponse success(String tempFileId, String fileName, String format, Long size, String checksum) {
-        return FileUploadResponse.builder()
-            .success(true)
-            .message("File uploaded successfully")
-            .temporaryFileId(tempFileId)
-            .originalFileName(fileName)
-            .fileFormat(format)
-            .fileSize(size)
-            .checksum(checksum)
-            .uploadedAt(java.time.LocalDateTime.now().toString())
-            .build();
-    }
-    
-    public static FileUploadResponse error(String errorMessage) {
-        return FileUploadResponse.builder()
-            .success(false)
-            .error(errorMessage)
-            .build();
     }
 }
