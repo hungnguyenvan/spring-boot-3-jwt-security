@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateDocumentRequest {
+    private String temporaryFileId; // For 2-step process
+    
     @NotBlank
     private String title;
     

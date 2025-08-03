@@ -39,6 +39,12 @@ public class Book {
 
     @Column(length = 1000)
     private String description;
+    
+    @Column(length = 1000)
+    private String synopsis;
+    
+    @Column(length = 100)
+    private String category;
 
     // Relationship with BookType
     @ManyToOne(fetch = FetchType.LAZY)

@@ -26,7 +26,6 @@ import java.util.Optional;
  * Base repository implementation providing common functionality
  * for all domain entities with audit and activation support
  */
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BaseRepositoryImpl<T extends BaseEntity, ID> 
     extends SimpleJpaRepository<T, ID> 
@@ -44,7 +43,7 @@ public class BaseRepositoryImpl<T extends BaseEntity, ID>
     }
 
     @Override
-    public void deleteAllById(Iterable<? extends ID> ids) {
+    public void deleteAllById(Iterable<ID> ids) {
         for (ID id : ids) {
             deleteById(id);
         }

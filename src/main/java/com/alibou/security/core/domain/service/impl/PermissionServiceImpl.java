@@ -1,14 +1,19 @@
 package com.alibou.security.core.domain.service.impl;
 
 import com.alibou.security.core.domain.entity.BookTypePermission;
+import com.alibou.security.core.domain.repository.BookTypePermissionRepository;
 import com.alibou.security.core.domain.service.PermissionService;
 import com.alibou.security.user.Role;
 import com.alibou.security.user.User;
 import com.alibou.security.book.BookRepository;
 import com.alibou.security.book.Book;
+import com.alibou.security.booktype.BookType;
+import com.alibou.security.booktype.BookTypeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /**
  * Implementation of permission service with business logic
@@ -20,7 +25,8 @@ import org.springframework.stereotype.Service;
 public class PermissionServiceImpl implements PermissionService {
 
     private final BookRepository bookRepository;
-    // Note: We'll need to inject EditorBookTypePermissionRepository when available
+    private final BookTypePermissionRepository bookTypePermissionRepository;
+    private final BookTypeRepository bookTypeRepository;
 
     @Override
     public boolean canEditBookType(User user, Integer bookTypeId) {
