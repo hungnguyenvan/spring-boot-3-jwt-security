@@ -25,6 +25,7 @@ docker-compose.yml           # Development (H2 database)
 docker-compose-pi5.yml       # Production Pi5 (PostgreSQL optimized)
 manage-postgres-pi5.sh       # PostgreSQL container management
 reload-database-pi5.sh       # Database reset utility
+check-database.sh            # Database connectivity checker
 ```
 
 ## 🔧 **BUILD & MAVEN**
@@ -32,6 +33,12 @@ reload-database-pi5.sh       # Database reset utility
 mvnw / mvnw.cmd              # Maven wrapper (cross-platform)
 mvn-pi5.sh                   # Pi5-optimized Maven with broken pipe fix
 fix-maven-pi5.sh             # Maven troubleshooting for Pi5
+```
+
+## 📤 **GIT & DEPLOYMENT UTILITIES**
+```
+commit-and-push.sh           # Commit and push to GitHub
+pull-latest.sh               # Pull latest changes on Pi5
 ```
 
 ## 🖥️ **SYSTEM SERVICE**
