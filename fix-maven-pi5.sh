@@ -42,8 +42,8 @@ Requires=docker.service
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/spring-boot-3-jwt-security
+User=hungcop
+WorkingDirectory=/home/hungcop/spring-boot-3-jwt-security
 Environment=JAVA_OPTS="-Xmx1536m -Xms512m -XX:+UseG1GC"
 Environment=SPRING_PROFILES_ACTIVE=pi5
 ExecStart=/usr/bin/java -jar target/security-0.0.1-SNAPSHOT.jar
