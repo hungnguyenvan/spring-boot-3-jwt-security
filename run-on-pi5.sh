@@ -30,6 +30,10 @@ fi
 
 echo "✅ All dependencies checked"
 
+# Set Maven options for Pi5 (tối ưu hóa cho ARM64)
+export MAVEN_OPTS="-Xmx1024m -Xms512m -XX:+UseG1GC -Djava.awt.headless=true -Djansi.force=true"
+export _JAVA_OPTIONS="-Djava.awt.headless=true"
+
 # Tạo thư mục logs
 mkdir -p logs
 
@@ -84,10 +88,15 @@ fi
 
 # Build application
 echo "🔨 Building application..."
-mvn clean compile -q
+
+# Sử dụng script Maven tối ưu cho Pi5
+chmod +x mvn-pi5.sh
+./mvn-pi5.sh clean compile
 
 if [ $? -ne 0 ]; then
     echo "❌ Build failed!"
+    echo "📋 Checking build logs..."
+    tail -50 logs/maven-pi5.log
     exit 1
 fi
 
