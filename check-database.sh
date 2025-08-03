@@ -2,8 +2,43 @@
 
 # Database Connection Checker for Pi5
 # File: check-database.sh
+# Usage: ./check-database.sh [--detailed] [--summary]
 
 echo "🔍 Checking database connectivity..."
+
+# Parse command line arguments
+DETAILED_MODE=false
+SUMMARY_ONLY=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --detailed|-d)
+            DETAILED_MODE=true
+            shift
+            ;;
+        --summary|-s)
+            SUMMARY_ONLY=true
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 [options]"
+            echo "Options:"
+            echo "  --detailed, -d    Show detailed table structure and content"
+            echo "  --summary, -s     Show only summary statistics"
+            echo "  --help, -h        Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
+# Default to summary if no mode specified
+if [ "$DETAILED_MODE" = false ] && [ "$SUMMARY_ONLY" = false ]; then
+    SUMMARY_ONLY=true
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -84,31 +119,93 @@ if echo "$CONNECTION_TEST" | grep -q "1 row"; then
     if [ "$TABLE_COUNT" -gt 0 ]; then
         success "Database schema exists ($TABLE_COUNT tables found)"
         
-        # List tables
+        # List tables with details
         echo ""
         info "Database tables:"
         if [ "$DOCKER_MODE" = true ]; then
-            docker exec -it $(docker ps --format "table {{.Names}}" | grep postgres | head -1) \
-                psql -h localhost -U $DB_USER -d $DB_NAME -c "\dt" 2>/dev/null | grep -E "^ [a-z_]+" | awk '{print "• " $3}'
+            TABLES=$(docker exec -it $(docker ps --format "table {{.Names}}" | grep postgres | head -1) \
+                psql -h localhost -U $DB_USER -d $DB_NAME -t -c "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;" 2>/dev/null | tr -d '\r')
         else
-            PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "\dt" 2>/dev/null | grep -E "^ [a-z_]+" | awk '{print "• " $3}'
+            TABLES=$(PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -t -c "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;" 2>/dev/null | tr -d '\r')
         fi
         
-        # Check user count
+        echo "$TABLES" | while read -r table; do
+            table=$(echo "$table" | xargs)  # trim whitespace
+            if [ -n "$table" ]; then
+                echo "• $table"
+            fi
+        done
+        
+        # Show detailed table structure and content
+        if [ "$DETAILED_MODE" = true ]; then
+            echo ""
+            info "Detailed table analysis:"
+            echo ""
+            
+            echo "$TABLES" | while read -r table; do
+                table=$(echo "$table" | xargs)  # trim whitespace
+                if [ -n "$table" ]; then
+                    echo "=============================================="
+                    echo "📋 TABLE: $table"
+                    echo "=============================================="
+                    
+                    # Show table structure
+                    echo ""
+                    echo "🏗️ Structure:"
+                    if [ "$DOCKER_MODE" = true ]; then
+                        docker exec -it $(docker ps --format "table {{.Names}}" | grep postgres | head -1) \
+                            psql -h localhost -U $DB_USER -d $DB_NAME -c "\d+ $table" 2>/dev/null
+                    else
+                        PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "\d+ $table" 2>/dev/null
+                    fi
+                    
+                    # Show row count
+                    echo ""
+                    echo "📊 Row count:"
+                    if [ "$DOCKER_MODE" = true ]; then
+                        ROW_COUNT=$(docker exec -it $(docker ps --format "table {{.Names}}" | grep postgres | head -1) \
+                            psql -h localhost -U $DB_USER -d $DB_NAME -t -c "SELECT COUNT(*) FROM $table;" 2>/dev/null | tr -d ' \n\r')
+                    else
+                        ROW_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -t -c "SELECT COUNT(*) FROM $table;" 2>/dev/null | tr -d ' \n\r')
+                    fi
+                    echo "Total rows: $ROW_COUNT"
+                    
+                    # Show sample data (first 5 rows)
+                    if [ "$ROW_COUNT" -gt 0 ]; then
+                        echo ""
+                        echo "📄 Sample data (first 5 rows):"
+                        if [ "$DOCKER_MODE" = true ]; then
+                            docker exec -it $(docker ps --format "table {{.Names}}" | grep postgres | head -1) \
+                                psql -h localhost -U $DB_USER -d $DB_NAME -c "SELECT * FROM $table LIMIT 5;" 2>/dev/null
+                        else
+                            PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "SELECT * FROM $table LIMIT 5;" 2>/dev/null
+                        fi
+                    else
+                        echo ""
+                        echo "📄 No data in this table"
+                    fi
+                    
+                    echo ""
+                fi
+            done
+        fi
+        
+        # Summary statistics
         echo ""
-        info "Checking data..."
-        if [ "$DOCKER_MODE" = true ]; then
-            USER_COUNT=$(docker exec -it $(docker ps --format "table {{.Names}}" | grep postgres | head -1) \
-                psql -h localhost -U $DB_USER -d $DB_NAME -t -c "SELECT COUNT(*) FROM _user;" 2>/dev/null | tr -d ' \n\r')
-        else
-            USER_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -t -c "SELECT COUNT(*) FROM _user;" 2>/dev/null | tr -d ' \n\r')
-        fi
-        
-        if [ "$USER_COUNT" -gt 0 ]; then
-            success "Found $USER_COUNT users in database"
-        else
-            warning "No users found in database (fresh installation)"
-        fi
+        info "📈 Database Summary:"
+        echo ""
+        echo "$TABLES" | while read -r table; do
+            table=$(echo "$table" | xargs)
+            if [ -n "$table" ]; then
+                if [ "$DOCKER_MODE" = true ]; then
+                    ROW_COUNT=$(docker exec -it $(docker ps --format "table {{.Names}}" | grep postgres | head -1) \
+                        psql -h localhost -U $DB_USER -d $DB_NAME -t -c "SELECT COUNT(*) FROM $table;" 2>/dev/null | tr -d ' \n\r')
+                else
+                    ROW_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -t -c "SELECT COUNT(*) FROM $table;" 2>/dev/null | tr -d ' \n\r')
+                fi
+                printf "• %-25s : %s rows\n" "$table" "$ROW_COUNT"
+            fi
+        done
         
     else
         warning "Database exists but no tables found"
@@ -155,7 +252,13 @@ echo ""
 if [ "$CONNECTION_TEST" ] && echo "$CONNECTION_TEST" | grep -q "1 row"; then
     success "Database is ready for Spring Boot application"
     echo ""
-    echo "Next steps:"
+    echo "📋 Available commands:"
+    echo "• Basic check:      ./check-database.sh"
+    echo "• Detailed view:    ./check-database.sh --detailed"
+    echo "• Summary only:     ./check-database.sh --summary"
+    echo "• Specific table:   ./show-table.sh <table_name>"
+    echo ""
+    echo "🚀 Next steps:"
     echo "• Start application: ./run-on-pi5.sh"
     echo "• Test APIs: ./quick-function-test.sh"
     echo "• Full deployment: ./complete-pi5-deployment.sh"

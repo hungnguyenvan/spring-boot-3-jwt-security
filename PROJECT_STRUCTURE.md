@@ -25,7 +25,8 @@ docker-compose.yml           # Development (H2 database)
 docker-compose-pi5.yml       # Production Pi5 (PostgreSQL optimized)
 manage-postgres-pi5.sh       # PostgreSQL container management
 reload-database-pi5.sh       # Database reset utility
-check-database.sh            # Database connectivity checker
+check-database.sh            # Database connectivity checker with detailed analysis
+show-table.sh                # Show specific table structure and content
 ```
 
 ## 🔧 **BUILD & MAVEN**
